@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # Cardano Node (Optional - for local development)
+  cardano-node:
+    image: inputoutput/cardano-node:latest
+    environment:
+      NETWORK: testnet
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    volumes:
+      - cardano-data:/data
+    networks:
+      - app-network
+
+  # IPFS Node (Kubo)
+  ipfs:
+    image: ipfs/kubo:latest
+    ports:
+      - "5001:5001"
+      - "4001:4001"
+      - "8080:8080"
+    volumes:
+      - ipfs-data:/data/ipfs
+    networks:
+      - app-network
+
+  # Backend FastAPI
+  backend:
+    build: ./backend
+    command: python main.py
+    ports:
+      - "8000:8000"
+    environment:
+      - CARDANO_NETWORK=testnet
+      - IPFS_GATEWAY_URL=http://ipfs:5001
+      - DEBUG=True
+    depends_on:
+      - ipfs
+    volumes:
+      - ./backend:/app
+    networks:
+      - app-network
+
+  # Frontend React
+  frontend:
+    build: ./frontend
+    command: npm run dev
+    ports:
+      - "3000:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+    networks:
+      - app-network
+
+volumes:
+  cardano-data:
+  ipfs-data:
+
+networks:
+  app-network:
+    driver: bridge

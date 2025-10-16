@@ -1,0 +1,8 @@
+name = "sonson0910/computer-vision-dapp"
+version = "0.1.0"
+description = "Decentralized identity management with face tracking on Cardano"
+
+[[dependencies]]
+name = "aiken-lang/stdlib"
+version = "v2"
+source = "github"

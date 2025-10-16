@@ -1,0 +1,152 @@
+{
+  "preamble": {
+    "title": "sonson0910/computer-vision-dapp",
+    "description": "Decentralized identity management with face tracking on Cardano",
+    "version": "0.1.0",
+    "plutusVersion": "v3",
+    "compiler": {
+      "name": "Aiken",
+      "version": "v1.1.19+e525483"
+    }
+  },
+  "validators": [
+    {
+      "title": "did_manager.did_manager.spend",
+      "datum": {
+        "title": "_datum",
+        "schema": {
+          "$ref": "#/definitions/computer_vision_dapp~1types~1DIDDatum"
+        }
+      },
+      "redeemer": {
+        "title": "_action",
+        "schema": {
+          "$ref": "#/definitions/computer_vision_dapp~1types~1Action"
+        }
+      },
+      "compiledCode": "58ca01010029800aba2aba1aab9faab9eaab9dab9a48888896600264653001300700198039804000cc01c0092225980099b8748008c01cdd500144ca60026016003300b300c00198041baa0048a51488896600266e1d20000028acc004c034dd500440062c80722b30013370e90010014566002601a6ea802200316403915980099b874801000a2b3001300d37540110018b201c8acc004cdc3a400c00515980098069baa008800c5900e45900b2016402c805860106ea800a2c8030600e00260066ea801e29344d95900101",
+      "hash": "d959895d0621e37f1908e10771b728f8afbc84f18196dc44ebe3e982"
+    },
+    {
+      "title": "did_manager.did_manager.else",
+      "redeemer": {
+        "schema": {}
+      },
+      "compiledCode": "58ca01010029800aba2aba1aab9faab9eaab9dab9a48888896600264653001300700198039804000cc01c0092225980099b8748008c01cdd500144ca60026016003300b300c00198041baa0048a51488896600266e1d20000028acc004c034dd500440062c80722b30013370e90010014566002601a6ea802200316403915980099b874801000a2b3001300d37540110018b201c8acc004cdc3a400c00515980098069baa008800c5900e45900b2016402c805860106ea800a2c8030600e00260066ea801e29344d95900101",
+      "hash": "d959895d0621e37f1908e10771b728f8afbc84f18196dc44ebe3e982"
+    },
+    {
+      "title": "test_did.test_did.spend",
+      "datum": {
+        "title": "datum",
+        "schema": {
+          "$ref": "#/definitions/computer_vision_dapp~1types~1DIDDatum"
+        }
+      },
+      "redeemer": {
+        "title": "action",
+        "schema": {
+          "$ref": "#/definitions/computer_vision_dapp~1types~1Action"
+        }
+      },
+      "compiledCode": "58ca01010029800aba2aba1aab9faab9eaab9dab9a48888896600264653001300700198039804000cc01c0092225980099b8748008c01cdd500144ca60026016003300b300c00198041baa0048a51488896600266e1d20000028acc004c034dd500440062c80722b30013370e90010014566002601a6ea802200316403915980099b874801000a2b3001300d37540110018b201c8acc004cdc3a400c00515980098069baa008800c5900e45900b2016402c805860106ea800a2c8030600e00260066ea801e29344d95900101",
+      "hash": "d959895d0621e37f1908e10771b728f8afbc84f18196dc44ebe3e982"
+    },
+    {
+      "title": "test_did.test_did.else",
+      "redeemer": {
+        "schema": {}
+      },
+      "compiledCode": "58ca01010029800aba2aba1aab9faab9eaab9dab9a48888896600264653001300700198039804000cc01c0092225980099b8748008c01cdd500144ca60026016003300b300c00198041baa0048a51488896600266e1d20000028acc004c034dd500440062c80722b30013370e90010014566002601a6ea802200316403915980099b874801000a2b3001300d37540110018b201c8acc004cdc3a400c00515980098069baa008800c5900e45900b2016402c805860106ea800a2c8030600e00260066ea801e29344d95900101",
+      "hash": "d959895d0621e37f1908e10771b728f8afbc84f18196dc44ebe3e982"
+    }
+  ],
+  "definitions": {
+    "Bool": {
+      "title": "Bool",
+      "anyOf": [
+        {
+          "title": "False",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": []
+        },
+        {
+          "title": "True",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": []
+        }
+      ]
+    },
+    "ByteArray": {
+      "dataType": "bytes"
+    },
+    "Int": {
+      "dataType": "integer"
+    },
+    "computer_vision_dapp/types/Action": {
+      "title": "Action",
+      "description": "Redeemer Actions",
+      "anyOf": [
+        {
+          "title": "Register",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": []
+        },
+        {
+          "title": "Update",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": []
+        },
+        {
+          "title": "Verify",
+          "dataType": "constructor",
+          "index": 2,
+          "fields": []
+        },
+        {
+          "title": "Revoke",
+          "dataType": "constructor",
+          "index": 3,
+          "fields": []
+        }
+      ]
+    },
+    "computer_vision_dapp/types/DIDDatum": {
+      "title": "DIDDatum",
+      "description": "DID Datum - stored on-chain",
+      "anyOf": [
+        {
+          "title": "DIDDatum",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "did_id",
+              "$ref": "#/definitions/ByteArray"
+            },
+            {
+              "title": "face_ipfs_hash",
+              "$ref": "#/definitions/ByteArray"
+            },
+            {
+              "title": "owner",
+              "$ref": "#/definitions/ByteArray"
+            },
+            {
+              "title": "created_at",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "verified",
+              "$ref": "#/definitions/Bool"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
