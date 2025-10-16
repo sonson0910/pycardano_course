@@ -1,0 +1,45 @@
+# Web Framework
+fastapi==0.104.1
+uvicorn==0.24.0
+python-multipart==0.0.6
+
+# Computer Vision
+opencv-python>=4.8.0
+numpy>=1.24.0,<2.0.0
+pillow>=10.0.0
+
+# Face Detection (Alternative to mediapipe for better compatibility)
+# Option 1: MTCNN (recommended for Windows)
+mtcnn>=0.1.1
+
+# Option 2: Face Detection Models (choose one)
+# opencv-python-headless>=4.8.0  # Lightweight alternative
+# dlib>=19.24  # Accurate but slower
+
+# Face Recognition & Processing
+scikit-image>=0.21.0
+scipy>=1.11.0
+
+# Blockchain (Using available PyCardano version)
+pycardano==0.16.0
+# Note: Only version 0.16.0 is available on PyPI
+# Code adapted to work with this version
+
+# IPFS (using latest alpha version)
+ipfshttpclient>=0.8.0a2
+python-dotenv>=1.0.0
+
+# Database (optional)
+sqlalchemy>=2.0.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# Utilities
+requests>=2.31.0
+aiofiles>=23.2.0
+python-json-logger>=2.0.0
+
+# Development & Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx>=0.25.0
