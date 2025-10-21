@@ -34,7 +34,7 @@ class DIDDatum(PlutusData):
       face_ipfs_hash: ByteArray,
       owner: ByteArray,
       created_at: Int,
-      verified: Bool,
+      verified: Int,  # 0 = false, 1 = true
     }
     """
 
@@ -42,7 +42,7 @@ class DIDDatum(PlutusData):
     face_ipfs_hash: bytes  # ByteArray - IPFS hash of face embedding
     owner: bytes  # ByteArray - owner's public key hash (28 bytes)
     created_at: int  # Int - creation timestamp in milliseconds
-    verified: bool  # Bool - verification status
+    verified: int  # Int - verification status (0=false, 1=true)
 
     def __post_init__(self):
         """Validate datum fields after creation"""
@@ -130,7 +130,7 @@ class DIDManager:
                 face_ipfs_hash=face_ipfs_bytes,
                 owner=owner_hash,
                 created_at=created_at_ms,
-                verified=False,
+                verified=0,  # 0 = not verified
             )
 
             logger.info(f"✅ DIDDatum created: {did_id_bytes.hex()[:8]}...")
@@ -392,22 +392,26 @@ class DIDManager:
             self.validate_register_datum(datum)
 
             # 3. Build transaction to lock DID to script
-            from .cardano_client import Register
+            from .cardano_client import Create
 
-            action = Register()
+            action = Create()
             tx = self.cardano.build_script_transaction(
                 action=action, datum=datum, sender_address=owner_address
             )
+
+            # 4. SUBMIT transaction to blockchain
+            submitted_tx_hash = self.cardano.submit_transaction(tx)
 
             # Store locally
             self.dids[did_id] = {
                 "datum": datum,
                 "created_at": datetime.utcnow().isoformat(),
                 "status": "created",
+                "tx_hash": submitted_tx_hash,
             }
 
-            logger.info(f"✅ DID created (TX pending): {did_id}")
-            return tx.get("tx_hash", did_id)
+            logger.info(f"✅ DID created (TX submitted): {did_id}")
+            return submitted_tx_hash
 
         except Exception as e:
             logger.error(f"❌ Failed to create DID: {e}")
@@ -446,12 +450,15 @@ class DIDManager:
                 sender_address=owner_address,
             )
 
+            # Submit transaction to blockchain
+            submitted_tx_hash = self.cardano.submit_transaction(tx)
+
             # Update status
             self.dids[did_id]["status"] = "registered"
-            self.dids[did_id]["tx_hash"] = tx.get("tx_hash")
+            self.dids[did_id]["tx_hash"] = submitted_tx_hash
 
-            logger.info(f"✅ DID registered (TX: {tx.get('tx_hash')})")
-            return tx.get("tx_hash", "")
+            logger.info(f"✅ DID registered (TX submitted: {submitted_tx_hash})")
+            return submitted_tx_hash
 
         except Exception as e:
             logger.error(f"❌ Failed to register DID: {e}")
@@ -481,7 +488,7 @@ class DIDManager:
                 face_ipfs_hash=new_face_ipfs_hash.encode("utf-8"),
                 owner=old_datum.owner,
                 created_at=old_datum.created_at,
-                verified=False,  # Reset verification after update
+                verified=0,  # Reset verification after update
             )
 
             # Validate Update action
@@ -499,14 +506,17 @@ class DIDManager:
                 sender_address=owner_address,
             )
 
+            # Submit transaction to blockchain
+            submitted_tx_hash = self.cardano.submit_transaction(tx)
+
             # Update local state
             self.dids[did_id]["datum"] = new_datum
             self.dids[did_id]["status"] = "updated"
             self.dids[did_id]["updated_at"] = datetime.utcnow().isoformat()
-            self.dids[did_id]["tx_hash"] = tx.get("tx_hash")
+            self.dids[did_id]["tx_hash"] = submitted_tx_hash
 
-            logger.info(f"✅ DID updated (TX: {tx.get('tx_hash')})")
-            return tx.get("tx_hash", "")
+            logger.info(f"✅ DID updated (TX submitted: {submitted_tx_hash})")
+            return submitted_tx_hash
 
         except Exception as e:
             logger.error(f"❌ Failed to update DID: {e}")
@@ -545,13 +555,16 @@ class DIDManager:
                 sender_address=owner_address,
             )
 
+            # Submit transaction to blockchain
+            submitted_tx_hash = self.cardano.submit_transaction(tx)
+
             # Update status
             self.dids[did_id]["status"] = "verified"
             self.dids[did_id]["verified"] = True
-            self.dids[did_id]["tx_hash"] = tx.get("tx_hash")
+            self.dids[did_id]["tx_hash"] = submitted_tx_hash
 
-            logger.info(f"✅ DID verified (TX: {tx.get('tx_hash')})")
-            return tx.get("tx_hash", "")
+            logger.info(f"✅ DID verified (TX submitted: {submitted_tx_hash})")
+            return submitted_tx_hash
 
         except Exception as e:
             logger.error(f"❌ Failed to verify DID: {e}")
@@ -590,12 +603,15 @@ class DIDManager:
                 sender_address=owner_address,
             )
 
+            # Submit transaction to blockchain
+            submitted_tx_hash = self.cardano.submit_transaction(tx)
+
             # Update status
             self.dids[did_id]["status"] = "revoked"
-            self.dids[did_id]["tx_hash"] = tx.get("tx_hash")
+            self.dids[did_id]["tx_hash"] = submitted_tx_hash
 
-            logger.info(f"✅ DID revoked (TX: {tx.get('tx_hash')})")
-            return tx.get("tx_hash", "")
+            logger.info(f"✅ DID revoked (TX submitted: {submitted_tx_hash})")
+            return submitted_tx_hash
 
         except Exception as e:
             logger.error(f"❌ Failed to revoke DID: {e}")

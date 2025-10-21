@@ -1,0 +1,274 @@
+﻿
+================================================================================
+TEST: CREATE DID SERVICE
+================================================================================
+
+[1/5] Initializing CardanoClient...
+   Γ£à CardanoClient initialized
+   - Network: Cardano Preprod Testnet
+
+   Loading wallet...
+   Γ£à Wallet loaded: addr_test1vpx302mqde...
+
+[2/5] Initializing DIDManager...
+   Γ£à DIDManager initialized
+   - Storage location: ./dids_registry.json
+
+[3/5] Checking wallet balance...
+   Γ£à Wallet ready
+   - UTxOs available: 2
+   - Total balance: 9982.28 ADA
+
+[4/5] Creating DID...
+   - DID ID: test-did-1761086161
+   - IPFS Hash: Qmaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+[DEBUG] create_did() called with did_id=test-did-1761086161
+[DEBUG] owner_address=addr_test1vpx302mqdefht0wly42wlpjmd2rm7xr85j6sgvej8pywusc38sglh
+[DEBUG] datum created: DIDDatum(did_id=b'1f774a8f-685', face_ipfs_hash=b'Qmaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', owner=b'\xadj>\xd7*\xdcaO\xf5\xdc\xcd\x90\x9a\xce\xa2\xe2\x12l^K\x0b\xfdy\x05\xce\xb2\xc2?', created_at=1761086161999, verified=False)
+[DEBUG] datum validated
+[DEBUG] About to call build_script_transaction()...
+[DEBUG] build_script_transaction() ENTRY
+[DEBUG] Action type: Create
+[DEBUG] Datum: DIDDatum(did_id=b'1f774a8f-685', face_ipfs_hash=b'Qmaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', owner=b'\xadj>\xd7*\xdcaO\xf5\xdc\xcd\x90\x9a\xce\xa2\xe2\x12l^K\x0b\xfdy\x05\xce\xb2\xc2?', created_at=1761086161999, verified=False)
+[DEBUG] Validating action and datum...
+[DEBUG] Validation passed
+[DEBUG] Getting sender address...
+[DEBUG] Parsing sender address: addr_test1vpx302mqdefht0wly42wlpjmd2rm7xr85j6sgvej8pywusc38sglh
+[DEBUG] Sender address parsed OK: addr_test1vpx302mqdefht0wly42wlpjmd2rm7xr85j6sgvej8pywusc38sglh
+[DEBUG] About to fetch UTxOs from blockchain...
+[DEBUG] UTxOs fetched: 2 found
+[DEBUG] BEFORE build_and_sign()
+[DEBUG] AFTER build_and_sign()
+[DEBUG] tx_raw type: <class 'pycardano.transaction.Transaction'>
+[DEBUG] tx_raw: {
+
+  'auxiliary_data': None,
+
+  'transaction_body': {
+
+
+    'auxiliary_data_hash': None,
+
+
+    'certificates': None,
+
+
+    'collateral': None,
+
+
+    'collateral_return': None,
+
+
+    'current_treasury_value': None,
+
+
+    'donation': None,
+
+
+    'fee': 167437,
+
+
+    'inputs': OrderedSet([{
+
+
+
+      'index': 0,
+
+
+
+      'transaction_id': TransactionId(hex='1519bf1bf1ef5a38ccdf46cba4089e7210288f44dfa1f9d27c294bfa906dd952'),
+
+
+
+    }, {
+
+
+
+      'index': 1,
+
+
+
+      'transaction_id': TransactionId(hex='1519bf1bf1ef5a38ccdf46cba4089e7210288f44dfa1f9d27c294bfa906dd952'),
+
+
+
+    }]),
+
+
+    'mint': None,
+
+
+    'network_id': None,
+
+
+    'outputs': [
+
+
+      {
+
+
+
+        'address': addr_test1vpx302mqdefht0wly42wlpjmd2rm7xr85j6sgvej8pywusc38sglh,
+
+
+
+        'amount': {'coin': 1500000, 'multi_asset': {}},
+
+
+
+        'datum': None,
+
+
+
+        'datum_hash': None,
+
+
+
+        'post_alonzo': False,
+
+
+
+        'script': None,
+
+
+
+      },
+
+
+      {
+
+
+
+        'address': addr_test1vpx302mqdefht0wly42wlpjmd2rm7xr85j6sgvej8pywusc38sglh,
+
+
+
+        'amount': {'coin': 9980610595, 'multi_asset': {}},
+
+
+
+        'datum': None,
+
+
+
+        'datum_hash': None,
+
+
+
+        'post_alonzo': False,
+
+
+
+        'script': None,
+
+
+
+      },
+
+
+    ],
+
+
+    'proposal_procedures': None,
+
+
+    'reference_inputs': None,
+
+
+    'required_signers': None,
+
+
+    'script_data_hash': None,
+
+
+    'total_collateral': None,
+
+
+    'ttl': None,
+
+
+    'update': None,
+
+
+    'validity_start': None,
+
+
+    'voting_procedures': None,
+
+
+    'withdraws': None,
+
+
+  },
+
+  'transaction_witness_set': {
+
+
+    'bootstrap_witness': None,
+
+
+    'native_scripts': None,
+
+
+    'plutus_data': None,
+
+
+    'plutus_v1_script': None,
+
+
+    'plutus_v2_script': None,
+
+
+    'plutus_v3_script': None,
+
+
+    'redeemer': None,
+
+
+    'vkey_witnesses': NonEmptyOrderedSet([{
+
+
+
+      'signature': '7f70ecb64ec07d8897a87c1f1ae4a24d460888395b5475a2635c6d3b51dbfcfa0baec594db315b269fb716ea88382bc5785c55a3c9ca516b05a97d1a8c8c4802',
+
+
+
+      'vkey': 'b1f3e12e18904de76dee73d5fda9841bf11e3c88818334156aa79b80416fa033',
+
+
+
+    }]),
+
+
+  },
+
+  'valid': True,
+
+}
+[DEBUG] build_script_transaction() returned: <class 'dict'> = {'type': 'script_transaction', 'action': 'Create', 'datum': {'did_id': '31663737346138662d363835', 'face_ipfs_hash': '516d6161616161616161616161616161616161616161616161616161616161616161616161616161616161616161', 'owner': 'ad6a3ed72adc614ff5dccd909acea2e2126c5e4b0bfd7905ceb2c23f', 'created_at': 1761086161999, 'verified': False}, 'redeemer': 'Create', 'status': 'built', 'tx_hash': '709f1aee86f094d8609aef984904d7c60279625a266bbd09bad2a4afddb962a5', 'tx_cbor': '84a300d90102828258201519bf1bf1ef5a38ccdf46cba4089e7210288f44dfa1f9d27c294bfa906dd952008258201519bf1bf1ef5a38ccdf46cba4089e7210288f44dfa1f9d27c294bfa906dd95201018282581d604d17ab606e5375bddf2554ef865b6a87bf1867a4b50433323848ee431a0016e36082581d604d17ab606e5375bddf2554ef865b6a87bf1867a4b50433323848ee431b0000000252e40823021a00028e0da100d9010281825820b1f3e12e18904de76dee73d5fda9841bf11e3c88818334156aa79b80416fa03358407f70ecb64ec07d8897a87c1f1ae4a24d460888395b5475a2635c6d3b51dbfcfa0baec594db315b269fb716ea88382bc5785c55a3c9ca516b05a97d1a8c8c4802f5f6', 'message': 'Create action built successfully'}
+[DEBUG] About to submit transaction to blockchain...
+[DEBUG] Calling transaction_submit with file: C:\Users\Admin\AppData\Local\Temp\tmp69gjg4ex.cbor
+[DEBUG] CBOR size: 274 bytes
+[DEBUG] transaction_submit returned: <class 'str'> = 4cbee6ea6babb2b7ca2fac1ed661da717b09979d39fd7468dfd597a5bef17ce8
+[DEBUG] Cleaned up temp file: C:\Users\Admin\AppData\Local\Temp\tmp69gjg4ex.cbor
+[DEBUG] Transaction submitted with hash: 4cbee6ea6babb2b7ca2fac1ed661da717b09979d39fd7468dfd597a5bef17ce8
+[DEBUG] Returning submitted tx_hash: 4cbee6ea6babb2b7ca2fac1ed661da717b09979d39fd7468dfd597a5bef17ce8
+   Γ£à DID created successfully!
+   - TX Hash: 4cbee6ea6babb2b7ca2fac1ed661da717b09979d39fd7468dfd597a5bef17ce8
+   - Status: Built and ready
+
+[5/5] Verifying DID storage...
+   Γ£à DID stored locally
+   - Status: unknown
+   - Created at: 1761086161999
+
+================================================================================
+Γ£à TEST PASSED: Create DID service is working!
+================================================================================
+
+Summary:
+  - DID created: test-did-1761086161
+  - Transaction: 4cbee6ea6babb2b7ca2fac1ed661da717b09979d39fd7468dfd597a5bef17ce8
+  - Next: You can submit this TX to blockchain or test other operations
+
+

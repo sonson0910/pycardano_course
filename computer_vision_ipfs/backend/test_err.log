@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "D:\venera\cardano\pycardano_course\computer_vision_ipfs\backend\test_create_did.py", line 37, in test_create_did
+    print(f"   \u2705 CardanoClient initialized")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\anaconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 3: character maps to <undefined>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\venera\cardano\pycardano_course\computer_vision_ipfs\backend\test_create_did.py", line 114, in <module>
+    success = test_create_did()
+  File "D:\venera\cardano\pycardano_course\computer_vision_ipfs\backend\test_create_did.py", line 107, in test_create_did
+    print(f"\u274c TEST FAILED: {e}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\anaconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u274c' in position 0: character maps to <undefined>

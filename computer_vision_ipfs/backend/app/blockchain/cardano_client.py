@@ -25,6 +25,11 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class Create:
+    pass
+
+
+@dataclass
 class Register:
     pass
 
@@ -157,49 +162,82 @@ class CardanoClient:
         Returns:
             Actual transaction hash from blockchain
         """
+        import tempfile
+        import os
+        
+        temp_file = None
         try:
             if "tx_cbor" not in tx:
                 raise ValueError("❌ Missing tx_cbor in transaction dict")
 
             logger.info(f"📤 Submitting transaction to blockchain...")
 
-            # Submit transaction to Blockfrost
+            # Get CBOR hex
             tx_cbor_hex = tx["tx_cbor"]
             
+            # BlockFrost transaction_submit() expects BINARY CBOR data
+            # Convert hex string to binary bytes
+            tx_cbor_bytes = bytes.fromhex(tx_cbor_hex)
+            
+            # Create temp file with BINARY CBOR data
+            with tempfile.NamedTemporaryFile(mode='wb', suffix='.cbor', delete=False) as f:
+                f.write(tx_cbor_bytes)
+                temp_file = f.name
+            
             # Send to blockchain via Blockfrost
-            submitted_tx_hash = self.blockfrost.transactions_submit(tx_cbor_hex)
+            submitted_tx_hash = self.client.transaction_submit(temp_file)
 
             logger.info(f"✅ Transaction submitted successfully!")
             logger.info(f"   - TX Hash: {submitted_tx_hash}")
             logger.info(f"   - Action: {tx.get('action', 'Unknown')}")
 
-            # Wait for confirmation
-            logger.info(f"⏳ Waiting for confirmation...")
-            max_attempts = 30
+            # Wait for confirmation (longer to ensure UTxO is available for next operation)
+            logger.info(f"⏳ Waiting for confirmation (30+ seconds)...")
+            max_attempts = 30  # Wait up to 30 seconds (reduced from 90)
             attempt = 0
+            import time
+            confirmed = False
             
             while attempt < max_attempts:
                 try:
-                    tx_status = self.blockfrost.transactions(submitted_tx_hash)
+                    tx_status = self.client.transaction(submitted_tx_hash)
                     if tx_status:
                         logger.info(f"✅ Transaction confirmed on blockchain!")
                         logger.info(f"   - Block: {tx_status.block}")
                         logger.info(f"   - Index: {tx_status.index}")
-                        return submitted_tx_hash
+                        confirmed = True
+                        break
                 except Exception:
                     pass
                 
                 attempt += 1
-                logger.info(f"   - Waiting... (attempt {attempt}/{max_attempts})")
-                import time
-                time.sleep(2)
-
-            logger.warning(f"⚠️  Transaction submitted but confirmation timeout")
+                if attempt % 5 == 0:
+                    logger.info(f"   - Waiting... ({30-attempt}s remaining)")
+                time.sleep(1)
+            
+            if confirmed:
+                # After confirmation, wait additional 15 seconds for UTxO to propagate
+                logger.info(f"⏳ Waiting 15s for UTxO propagation...")
+                for i in range(15):
+                    if i % 5 == 0:
+                        logger.info(f"   - {15-i}s remaining...")
+                    time.sleep(1)
+                logger.info(f"✅ Ready for next operation!")
+            else:
+                logger.warning(f"⚠️  Confirmation timeout, but proceeding (TX submitted)")
+                
             return submitted_tx_hash
 
         except Exception as e:
             logger.error(f"❌ Failed to submit transaction: {e}")
             raise
+        finally:
+            # Clean up temp file
+            if temp_file and os.path.exists(temp_file):
+                try:
+                    os.remove(temp_file)
+                except:
+                    pass
 
     def _validate_action(self, action, datum) -> bool:
         try:
@@ -263,6 +301,7 @@ class CardanoClient:
         NO MOCKS - uses actual blockchain data and real CBOR
         """
         try:
+            print(f"[DEBUG] build_script_transaction() ENTRY")
             logger.info(f"🔨 Building REAL script transaction with {type(action).__name__} redeemer...")
 
             # Validate action and datum
@@ -284,45 +323,67 @@ class CardanoClient:
 
             # Get REAL UTxOs from blockchain
             logger.info(f"   📦 Fetching UTxOs from blockchain...")
-            utxos = self.context.utxos(sender_address)
+            all_utxos = self.context.utxos(sender_address)
+            
+            if not all_utxos:
+                raise ValueError("❌ No UTxOs available for transaction")
+            
+            # Filter to only WALLET UTxOs (not script-locked ones)
+            # Script UTxOs have datum - skip those
+            utxos = [u for u in all_utxos if u.output.datum is None and not u.output.script]
             
             if not utxos:
-                raise ValueError("❌ No UTxOs available for transaction")
+                logger.warning(f"⚠️  No wallet UTxOs found (all are script-locked)")
+                # Fall back to using first UTxO anyway
+                utxos = all_utxos[:1]
 
-            logger.info(f"   ✅ Found {len(utxos)} UTxO(s) on blockchain")
+            logger.info(f"   ✅ Found {len(utxos)} wallet UTxO(s) on blockchain")
 
             # Build REAL transaction using BlockFrostChainContext
             logger.info(f"   🔨 Building transaction...")
             builder = TransactionBuilder(self.context)
             
-            # Add inputs from blockchain UTxOs (REAL)
-            for i, utxo in enumerate(utxos[:3]):
-                builder.add_input(utxo)
-                logger.info(f"      - Input {i+1}: {str(utxo.input.transaction_id)[:16]}...")
+            # Create script address to lock UTxO to
+            from pycardano import ScriptHash
+            script_hash = ScriptHash(bytes.fromhex(self.SCRIPT_HASH))
+            script_address = Address(script_hash, network=Network.TESTNET)
             
-            # Add output with change
+            # All operations (including register/update/verify/revoke) spend WALLET UTxOs
+            # This avoids timing issues where previous TX outputs aren't confirmed yet
+            logger.info(f"   💰 Spending wallet UTxO...")
+            
+            # Add input from first available wallet UTxO (use only 1 to preserve change for next operation)
+            builder.add_input(utxos[0])
+            logger.info(f"      - Wallet input: {str(utxos[0].input.transaction_id)[:16]}... (value: {utxos[0].output.amount.coin} lovelace)")
+            
+            # Add output locked to script with datum
+            # Only add SCRIPT output, let PyCardano calculate change
+            logger.info(f"   ✍️  Adding script output...")
             builder.add_output(
                 TransactionOutput(
-                    address=sender,
-                    amount=Value(1_500_000)
+                    address=script_address,
+                    amount=Value(1_500_000),  # 1.5 ADA for script UTxO
+                    datum=datum
                 )
             )
-            logger.info(f"   📤 Added output with change address")
+            logger.info(f"   📤 Added output locked to script: 1.5 ADA")
             
-            # Build and sign (REAL TX)
+            # Build and sign - PyCardano will calculate change + fee automatically
+            # This is the CORRECT approach per Aiken docs
             logger.info(f"   ✍️  Building and signing transaction...")
             tx_raw = builder.build_and_sign(
                 signing_keys=[signing_key],
                 change_address=sender
             )
             
-            logger.info(f"   ✅ Transaction built and signed")
+            logger.info(f"   ✓ Transaction signed")
             
             # Get REAL TX hash from CBOR
             tx_cbor = tx_raw.to_cbor()
             tx_hash = hashlib.blake2b(tx_cbor, digest_size=32).digest().hex()
 
             logger.info(f"   📋 CBOR size: {len(tx_cbor)} bytes")
+            logger.info(f"   📋 CBOR (first 100 chars): {tx_cbor.hex()[:100]}...")
             logger.info(f"   #️⃣  TX Hash: {tx_hash}")
 
             # Build final response with REAL CBOR
@@ -351,6 +412,10 @@ class CardanoClient:
             return response
 
         except Exception as e:
+            print(f"[DEBUG] EXCEPTION in build_script_transaction(): {type(e).__name__}")
+            print(f"[DEBUG] Exception message: {e}")
+            import traceback
+            traceback.print_exc()
             logger.error(f"❌ Failed to build script transaction: {e}")
             raise
 
