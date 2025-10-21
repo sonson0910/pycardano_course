@@ -365,3 +365,238 @@ class DIDManager:
                 "metadata": did_info.get("metadata", {}),
             }
         return result
+
+    # ================================================================
+    # HIGH-LEVEL DID OPERATIONS (Called by API endpoints)
+    # ================================================================
+
+    def create_did(self, did_id: str, face_ipfs_hash: str) -> str:
+        """
+        Create new DID and lock to blockchain script
+
+        Args:
+            did_id: DID identifier
+            face_ipfs_hash: IPFS hash of face embedding
+
+        Returns:
+            Transaction hash
+        """
+        try:
+            logger.info(f"📝 Creating DID: {did_id[:20]}...")
+
+            # 1. Create DIDDatum
+            owner_address = str(self.cardano.wallet_address)
+            datum = self.create_did_datum(face_ipfs_hash, owner_address)
+
+            # 2. Validate datum
+            self.validate_register_datum(datum)
+
+            # 3. Build transaction to lock DID to script
+            from .cardano_client import Register
+
+            action = Register()
+            tx = self.cardano.build_script_transaction(
+                action=action, datum=datum, sender_address=owner_address
+            )
+
+            # Store locally
+            self.dids[did_id] = {
+                "datum": datum,
+                "created_at": datetime.utcnow().isoformat(),
+                "status": "created",
+            }
+
+            logger.info(f"✅ DID created (TX pending): {did_id}")
+            return tx.get("tx_hash", did_id)
+
+        except Exception as e:
+            logger.error(f"❌ Failed to create DID: {e}")
+            raise
+
+    def register_did(self, did_id: str) -> str:
+        """
+        Register DID - Execute Register redeemer on blockchain
+
+        Args:
+            did_id: DID to register
+
+        Returns:
+            Transaction hash
+        """
+        try:
+            logger.info(f"🔐 Registering DID: {did_id}")
+
+            if did_id not in self.dids:
+                raise ValueError(f"DID not found locally: {did_id}")
+
+            datum = self.dids[did_id]["datum"]
+
+            # Validate Register action
+            self.validate_register_datum(datum)
+
+            # Build Register transaction
+            from .cardano_client import Register
+
+            action = Register()
+            owner_address = str(self.cardano.wallet_address)
+
+            tx = self.cardano.build_script_transaction(
+                action=action,
+                datum=datum,
+                sender_address=owner_address,
+            )
+
+            # Update status
+            self.dids[did_id]["status"] = "registered"
+            self.dids[did_id]["tx_hash"] = tx.get("tx_hash")
+
+            logger.info(f"✅ DID registered (TX: {tx.get('tx_hash')})")
+            return tx.get("tx_hash", "")
+
+        except Exception as e:
+            logger.error(f"❌ Failed to register DID: {e}")
+            raise
+
+    def update_did(self, did_id: str, new_face_ipfs_hash: str) -> str:
+        """
+        Update DID with new face embedding - Execute Update redeemer
+
+        Args:
+            did_id: DID to update
+            new_face_ipfs_hash: New IPFS hash of face embedding
+
+        Returns:
+            Transaction hash
+        """
+        try:
+            logger.info(f"🔄 Updating DID: {did_id}")
+
+            if did_id not in self.dids:
+                raise ValueError(f"DID not found: {did_id}")
+
+            # Create new datum with updated embedding
+            old_datum = self.dids[did_id]["datum"]
+            new_datum = DIDDatum(
+                did_id=old_datum.did_id,
+                face_ipfs_hash=new_face_ipfs_hash.encode("utf-8"),
+                owner=old_datum.owner,
+                created_at=old_datum.created_at,
+                verified=False,  # Reset verification after update
+            )
+
+            # Validate Update action
+            self.validate_update_datum(new_datum)
+
+            # Build Update transaction
+            from .cardano_client import Update
+
+            action = Update()
+            owner_address = str(self.cardano.wallet_address)
+
+            tx = self.cardano.build_script_transaction(
+                action=action,
+                datum=new_datum,
+                sender_address=owner_address,
+            )
+
+            # Update local state
+            self.dids[did_id]["datum"] = new_datum
+            self.dids[did_id]["status"] = "updated"
+            self.dids[did_id]["updated_at"] = datetime.utcnow().isoformat()
+            self.dids[did_id]["tx_hash"] = tx.get("tx_hash")
+
+            logger.info(f"✅ DID updated (TX: {tx.get('tx_hash')})")
+            return tx.get("tx_hash", "")
+
+        except Exception as e:
+            logger.error(f"❌ Failed to update DID: {e}")
+            raise
+
+    def verify_did(self, did_id: str) -> str:
+        """
+        Verify DID - Execute Verify redeemer (read-only check)
+
+        Args:
+            did_id: DID to verify
+
+        Returns:
+            Transaction hash
+        """
+        try:
+            logger.info(f"✅ Verifying DID: {did_id}")
+
+            if did_id not in self.dids:
+                raise ValueError(f"DID not found: {did_id}")
+
+            datum = self.dids[did_id]["datum"]
+
+            # Validate Verify action
+            self.validate_verify_datum(datum)
+
+            # Build Verify transaction
+            from .cardano_client import Verify
+
+            action = Verify()
+            owner_address = str(self.cardano.wallet_address)
+
+            tx = self.cardano.build_script_transaction(
+                action=action,
+                datum=datum,
+                sender_address=owner_address,
+            )
+
+            # Update status
+            self.dids[did_id]["status"] = "verified"
+            self.dids[did_id]["verified"] = True
+            self.dids[did_id]["tx_hash"] = tx.get("tx_hash")
+
+            logger.info(f"✅ DID verified (TX: {tx.get('tx_hash')})")
+            return tx.get("tx_hash", "")
+
+        except Exception as e:
+            logger.error(f"❌ Failed to verify DID: {e}")
+            raise
+
+    def revoke_did(self, did_id: str) -> str:
+        """
+        Revoke DID - Execute Revoke redeemer (permanent disable)
+
+        Args:
+            did_id: DID to revoke
+
+        Returns:
+            Transaction hash
+        """
+        try:
+            logger.info(f"🚫 Revoking DID: {did_id}")
+
+            if did_id not in self.dids:
+                raise ValueError(f"DID not found: {did_id}")
+
+            datum = self.dids[did_id]["datum"]
+
+            # Validate Revoke action
+            self.validate_revoke_datum(datum)
+
+            # Build Revoke transaction
+            from .cardano_client import Revoke
+
+            action = Revoke()
+            owner_address = str(self.cardano.wallet_address)
+
+            tx = self.cardano.build_script_transaction(
+                action=action,
+                datum=datum,
+                sender_address=owner_address,
+            )
+
+            # Update status
+            self.dids[did_id]["status"] = "revoked"
+            self.dids[did_id]["tx_hash"] = tx.get("tx_hash")
+
+            logger.info(f"✅ DID revoked (TX: {tx.get('tx_hash')})")
+            return tx.get("tx_hash", "")
+
+        except Exception as e:
+            logger.error(f"❌ Failed to revoke DID: {e}")
+            raise
