@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { healthCheck } from './api';
 import FaceDetector from './components/FaceDetector';
+import { DIDAManagement } from './components/DIDAManagement';
+import './App.css';
 
 const App: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [preFilledDID, setPreFilledDID] = useState<{
+    did: string;
+    ipfs_hash: string;
+  } | null>(null);
+  const [activeTab, setActiveTab] = useState<'detect' | 'manage'>('detect');
 
   useEffect(() => {
     const checkHealth = async () => {
@@ -22,6 +29,15 @@ const App: React.FC = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  const handleDIDCreated = (didData: any) => {
+    setPreFilledDID({
+      did: didData.did,
+      ipfs_hash: didData.ipfs_hash,
+    });
+    // Auto-switch to manage tab after DID created
+    setTimeout(() => setActiveTab('manage'), 1000);
+  };
 
   return (
     <div className="app">
@@ -43,7 +59,36 @@ const App: React.FC = () => {
 
         {isConnected && (
           <div className="content">
-            <FaceDetector />
+            {/* Tab Navigation */}
+            <div className="tabs">
+              <button
+                className={`tab-button ${activeTab === 'detect' ? 'active' : ''}`}
+                onClick={() => setActiveTab('detect')}
+              >
+                📸 1. Detect Face
+              </button>
+              <button
+                className={`tab-button ${activeTab === 'manage' ? 'active' : ''}`}
+                onClick={() => setActiveTab('manage')}
+              >
+                🆔 2. Manage DIDs
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            <div className="tab-content">
+              {activeTab === 'detect' && (
+                <div className="tab-pane active">
+                  <FaceDetector onDIDCreated={handleDIDCreated} />
+                </div>
+              )}
+
+              {activeTab === 'manage' && (
+                <div className="tab-pane active">
+                  <DIDAManagement preFilledDID={preFilledDID} />
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>

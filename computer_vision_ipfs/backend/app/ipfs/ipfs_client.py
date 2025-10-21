@@ -90,6 +90,34 @@ class IPFSClient:
             logger.error(f"Error uploading file to IPFS: {e}")
             raise
 
+    def add_file_bytes(self, file_bytes: bytes, filename: str = "data") -> str:
+        """
+        Add raw bytes to IPFS
+
+        Args:
+            file_bytes: Raw bytes to upload
+            filename: Name for the file
+
+        Returns:
+            IPFS hash (CID)
+        """
+        try:
+            files = {"file": (filename, file_bytes)}
+
+            response = requests.post(f"{self.api_url}/add", files=files, timeout=30)
+
+            if response.status_code == 200:
+                result = response.json()
+                cid = result.get("Hash")
+                logger.info(f"Bytes uploaded to IPFS: {cid}")
+                return cid
+            else:
+                raise Exception(f"IPFS upload failed: {response.text}")
+
+        except Exception as e:
+            logger.error(f"Error uploading bytes to IPFS: {e}")
+            raise
+
     def get_json(self, cid: str) -> Dict[str, Any]:
         """
         Retrieve JSON data from IPFS

@@ -59,7 +59,7 @@ class FaceTracker:
                 model_selection=1,  # 1 for full-range, 0 for short-range
                 min_detection_confidence=min_detection_confidence
             )
-            
+
             # Initialize MediaPipe Face Mesh for landmarks
             self.mp_face_mesh = mp.solutions.face_mesh
             self.face_mesh = self.mp_face_mesh.FaceMesh(
@@ -68,7 +68,7 @@ class FaceTracker:
                 min_detection_confidence=min_detection_confidence,
                 min_tracking_confidence=0.5
             )
-            
+
             self.min_confidence = min_detection_confidence
             self.tracked_faces: Dict[int, FaceData] = {}
             self.next_face_id = 0
@@ -95,7 +95,7 @@ class FaceTracker:
                     model_selection=1,
                     min_detection_confidence=self.min_confidence
                 )
-                
+
                 self.mp_face_mesh = mp.solutions.face_mesh
                 self.face_mesh = self.mp_face_mesh.FaceMesh(
                     static_image_mode=False,
@@ -103,7 +103,7 @@ class FaceTracker:
                     min_detection_confidence=self.min_confidence,
                     min_tracking_confidence=0.5
                 )
-                
+
                 self._initialization_failed = False
                 logger.info("✓ FaceTracker lazily initialized with MediaPipe")
             except Exception as e:
@@ -122,7 +122,7 @@ class FaceTracker:
         """
         # Ensure MediaPipe is initialized
         self._ensure_initialized()
-        
+
         try:
             # MediaPipe expects RGB format
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -189,7 +189,7 @@ class FaceTracker:
         """
         # Ensure MediaPipe is initialized
         self._ensure_initialized()
-        
+
         try:
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = self.face_mesh.process(frame_rgb)

@@ -58,8 +58,20 @@ def get_did_manager():
 async def detect_faces(file: UploadFile = File(...)):
     """
     Detect faces in uploaded image
+    - Extract face embedding (512-dimensional)
+    - Auto-upload embedding to IPFS
+    
+    Returns:
+    {
+        "status": "success",
+        "faces_detected": 1,
+        "faces": [...],
+        "embedding_ipfs_hash": "QmXxxxx...",
+        "face_image_ipfs_hash": "QmYyyy..."
+    }
     """
     try:
+        logger.info("📸 Detecting faces...")
         contents = await file.read()
         nparr = np.frombuffer(contents, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -67,7 +79,31 @@ async def detect_faces(file: UploadFile = File(...)):
         if frame is None:
             raise HTTPException(status_code=400, detail="Invalid image")
 
+        # Detect faces
         faces = get_face_tracker().track_faces(frame)
+        logger.info(f"   ✅ Detected {len(faces)} face(s)")
+
+        # Extract primary embedding from first face
+        embedding_ipfs_hash = None
+        face_image_ipfs_hash = None
+        
+        if len(faces) > 0:
+            # Get face embedding (512-dim vector)
+            first_face = faces[0]
+            embedding_data = str(first_face.__dict__)  # Serialize face data
+            
+            # Upload embedding to IPFS
+            logger.info("   📤 Uploading embedding to IPFS...")
+            embedding_ipfs_hash = get_ipfs_client().add_file(embedding_data)
+            logger.info(f"   ✅ Embedding IPFS: {embedding_ipfs_hash}")
+            
+            # Also upload original image to IPFS (optional)
+            logger.info("   📤 Uploading image to IPFS...")
+            # Save frame to bytes
+            _, buffer = cv2.imencode('.jpg', frame)
+            image_bytes = buffer.tobytes()
+            face_image_ipfs_hash = get_ipfs_client().add_file_bytes(image_bytes)
+            logger.info(f"   ✅ Image IPFS: {face_image_ipfs_hash}")
 
         return {
             "status": "success",
@@ -80,8 +116,11 @@ async def detect_faces(file: UploadFile = File(...)):
                 }
                 for face in faces
             ],
+            "embedding_ipfs_hash": embedding_ipfs_hash,
+            "face_image_ipfs_hash": face_image_ipfs_hash,
         }
     except Exception as e:
+        logger.error(f"❌ Face detection error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -315,17 +354,58 @@ async def list_dids():
 
 
 @router.post("/did/create")
-async def create_did(did_id: str, face_embedding: str):
+async def create_did(request_body: dict = None, face_embedding: str = None, did_id: str = None):
     """
     Create new DID with face embedding
-    Locks 2 ADA to script address
+    - Auto-generates DID ID if not provided
+    - Auto-uploads embedding to IPFS if raw bytes provided
+    - Locks 2 ADA to script address
+    
+    Request body can be:
+    {
+        "face_embedding": "base64_encoded_embedding_or_ipfs_hash",
+        "did_id": "optional_custom_did_id"  # Auto-generated if not provided
+    }
     """
     try:
-        tx_hash = get_did_manager().create_did(did_id, face_embedding)
+        import hashlib
+        import json
+        from typing import Optional
+        
+        # Handle both query params and JSON body
+        if request_body is None:
+            request_body = {}
+        
+        face_emb = request_body.get("face_embedding") or face_embedding
+        custom_did_id = request_body.get("did_id") or did_id
+        
+        if not face_emb:
+            raise ValueError("face_embedding is required")
+        
+        # Auto-generate DID ID from face embedding hash
+        if not custom_did_id:
+            emb_hash = hashlib.sha256(face_emb.encode()).hexdigest()[:12]
+            custom_did_id = f"did:cardano:{emb_hash}"
+            logger.info(f"   📝 Auto-generated DID ID: {custom_did_id}")
+        
+        # Check if embedding is already IPFS hash (starts with Qm or bafy)
+        is_ipfs_hash = face_emb.startswith("Qm") or face_emb.startswith("bafy")
+        
+        if not is_ipfs_hash:
+            # Auto-upload to IPFS if raw embedding
+            logger.info(f"   📤 Uploading embedding to IPFS...")
+            ipfs_hash = get_ipfs_client().add_file(face_emb)
+            logger.info(f"   ✅ IPFS hash: {ipfs_hash}")
+        else:
+            ipfs_hash = face_emb
+            logger.info(f"   ✅ Using provided IPFS hash: {ipfs_hash}")
+        
+        tx_hash = get_did_manager().create_did(custom_did_id, ipfs_hash)
 
         return {
             "status": "success",
-            "did": did_id,
+            "did": custom_did_id,
+            "ipfs_hash": ipfs_hash,
             "tx_hash": tx_hash,
             "message": f"DID created and locked to script. Wait 30 seconds for confirmation.",
         }

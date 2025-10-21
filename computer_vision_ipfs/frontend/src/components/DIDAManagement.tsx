@@ -24,7 +24,12 @@ interface FormData {
   action: 'create' | 'register' | 'update' | 'verify' | 'revoke';
 }
 
-export const DIDAManagement: React.FC = () => {
+export const DIDAManagement: React.FC<{
+  preFilledDID?: {
+    did: string;
+    ipfs_hash: string;
+  };
+}> = ({ preFilledDID }) => {
   const [dids, setDids] = useState<DID[]>([]);
   const [formData, setFormData] = useState<FormData>({
     didId: '',
@@ -37,6 +42,17 @@ export const DIDAManagement: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
 
   const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api/v1';
+
+  // Auto-fill form when DID data received from FaceDetector
+  useEffect(() => {
+    if (preFilledDID) {
+      setFormData({
+        didId: preFilledDID.did,
+        faceEmbedding: preFilledDID.ipfs_hash,
+        action: 'create',
+      });
+    }
+  }, [preFilledDID]);
 
   // Fetch all DIDs
   const fetchDIDs = async () => {
