@@ -42,6 +42,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include API routers
+app.include_router(router, prefix="/api/v1", tags=["vision-blockchain"])
 
 # Health check endpoint
 @app.get("/health")
@@ -62,13 +64,6 @@ async def root():
         "docs": "/docs",
         "openapi": "/openapi.json",
     }
-
-
-# TODO: Add route imports when modules are created
-# from app.api import faces, dids, verification
-# app.include_router(faces.router, prefix="/api/faces", tags=["faces"])
-# app.include_router(dids.router, prefix="/api/dids", tags=["dids"])
-# app.include_router(verification.router, prefix="/api/verify", tags=["verification"])
 
 
 if __name__ == "__main__":
