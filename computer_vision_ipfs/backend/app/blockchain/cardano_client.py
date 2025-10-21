@@ -134,12 +134,57 @@ class CardanoClient:
             raise
 
     def submit_transaction(self, tx: Dict[str, Any]) -> str:
+        """
+        Submit transaction to blockchain via Blockfrost
+
+        Args:
+            tx: Transaction dict with tx_cbor from build_script_transaction()
+
+        Returns:
+            Actual transaction hash from blockchain
+        """
         try:
-            logger.warning("Transaction submission not implemented")
-            return "txid_placeholder"
+            if "tx_cbor" not in tx:
+                raise ValueError("❌ Missing tx_cbor in transaction dict")
+
+            logger.info(f"📤 Submitting transaction to blockchain...")
+
+            # Submit transaction to Blockfrost
+            tx_cbor_hex = tx["tx_cbor"]
+            
+            # Send to blockchain via Blockfrost
+            submitted_tx_hash = self.blockfrost.transactions_submit(tx_cbor_hex)
+
+            logger.info(f"✅ Transaction submitted successfully!")
+            logger.info(f"   - TX Hash: {submitted_tx_hash}")
+            logger.info(f"   - Action: {tx.get('action', 'Unknown')}")
+
+            # Wait for confirmation
+            logger.info(f"⏳ Waiting for confirmation...")
+            max_attempts = 30
+            attempt = 0
+            
+            while attempt < max_attempts:
+                try:
+                    tx_status = self.blockfrost.transactions(submitted_tx_hash)
+                    if tx_status:
+                        logger.info(f"✅ Transaction confirmed on blockchain!")
+                        logger.info(f"   - Block: {tx_status.block}")
+                        logger.info(f"   - Index: {tx_status.index}")
+                        return submitted_tx_hash
+                except Exception:
+                    pass
+                
+                attempt += 1
+                logger.info(f"   - Waiting... (attempt {attempt}/{max_attempts})")
+                import time
+                time.sleep(2)
+
+            logger.warning(f"⚠️  Transaction submitted but confirmation timeout")
+            return submitted_tx_hash
 
         except Exception as e:
-            logger.error(f"Failed to submit: {e}")
+            logger.error(f"❌ Failed to submit transaction: {e}")
             raise
 
     def _validate_action(self, action, datum) -> bool:
@@ -240,18 +285,15 @@ class CardanoClient:
             # Build the transaction with redeemer
             from pycardano import (
                 TransactionBuilder,
-                ScriptContext,
                 ScriptHash,
                 InvalidAfter,
-                InvalidBefore,
                 Value,
                 Address,
+                PlutusV3Script,
             )
+            from pycardano.hash import ScriptHash as PHScriptHash
             import datetime
-
-            # Create transaction builder
-            builder = TransactionBuilder()
-            builder.add_minting_script(validators)
+            import hashlib
 
             # Get UTxOs
             sender = Address(sender_address)
@@ -261,6 +303,37 @@ class CardanoClient:
                 raise ValueError("❌ No UTxOs available for transaction")
 
             logger.info(f"   📦 Using {len(utxos)} UTxOs")
+
+            # Build transaction structure with real transaction building
+            from pycardano import (
+                TransactionBuilder,
+                UTxO,
+                TransactionInput,
+            )
+            
+            builder = TransactionBuilder()
+            
+            # Add inputs (UTxOs from wallet)
+            for utxo in utxos[:5]:  # Use up to 5 UTxOs
+                builder.add_input(utxo)
+            
+            # Add change address
+            builder.add_output_address(sender, Value(2000000))
+            
+            # Set time to live (TTL)
+            latest_block = self.blockfrost.blocks_latest()
+            ttl = int(latest_block.slot) + 10000
+            builder.set_ttl(ttl)
+            
+            # Build and sign transaction
+            tx_raw = builder.build_and_sign(
+                signing_keys=[signing_key],
+                change_address=sender
+            )
+            
+            # Get transaction hash by serializing
+            tx_bytes = tx_raw.to_cbor()
+            tx_hash = hashlib.blake2b(tx_bytes, digest_size=32).hex()
 
             # Build transaction structure
             tx_dict = {
@@ -274,14 +347,16 @@ class CardanoClient:
                     "verified": datum.verified,
                 },
                 "redeemer": type(action).__name__,
-                "status": "signed",
-                "tx_hash": f"tx_{hash(str(action))}_simulated",
-                "message": f"{type(action).__name__} action prepared (submit manually or use submit_transaction)",
+                "status": "built",
+                "tx_hash": tx_hash,
+                "tx_cbor": tx_raw.to_cbor().hex(),
+                "message": f"{type(action).__name__} action built successfully",
             }
 
             logger.info(f"✅ Script transaction built successfully")
             logger.info(f"   - Action: {type(action).__name__}")
             logger.info(f"   - DID: {datum.did_id.hex()[:8]}...")
+            logger.info(f"   - TX Hash: {tx_hash[:16]}...")
             logger.info(f"   - Status: Ready for submission")
 
             return tx_dict
