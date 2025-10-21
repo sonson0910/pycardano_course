@@ -53,7 +53,7 @@ export const FaceDetector: React.FC<{
     try {
       setCreatingDID(true);
       setError(null);
-      
+
       const didResponse = await createDID(result.embedding_ipfs_hash, {
         face_image_ipfs: result.embedding_ipfs_hash,
       });
@@ -110,8 +110,8 @@ export const FaceDetector: React.FC<{
               <div className="ipfs-hash-display">
                 {result.embedding_ipfs_hash}
               </div>
-              <button 
-                onClick={handleCreateDID} 
+              <button
+                onClick={handleCreateDID}
                 disabled={creatingDID}
                 className="create-did-button"
               >

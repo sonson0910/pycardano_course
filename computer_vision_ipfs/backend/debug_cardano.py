@@ -1,4 +1,5 @@
 """Debug script to trace exact failure point"""
+
 import sys
 import os
 
@@ -21,6 +22,7 @@ try:
 except Exception as e:
     print(f"❌ CardanoClient failed: {e}")
     import traceback
+
     traceback.print_exc()
     sys.exit(1)
 

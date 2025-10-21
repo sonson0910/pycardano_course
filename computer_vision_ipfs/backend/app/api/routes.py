@@ -60,7 +60,7 @@ async def detect_faces(file: UploadFile = File(...)):
     Detect faces in uploaded image
     - Extract face embedding (512-dimensional)
     - Auto-upload embedding to IPFS
-    
+
     Returns:
     {
         "status": "success",
@@ -86,21 +86,21 @@ async def detect_faces(file: UploadFile = File(...)):
         # Extract primary embedding from first face
         embedding_ipfs_hash = None
         face_image_ipfs_hash = None
-        
+
         if len(faces) > 0:
             # Get face embedding (512-dim vector)
             first_face = faces[0]
             embedding_data = str(first_face.__dict__)  # Serialize face data
-            
+
             # Upload embedding to IPFS
             logger.info("   📤 Uploading embedding to IPFS...")
             embedding_ipfs_hash = get_ipfs_client().add_file(embedding_data)
             logger.info(f"   ✅ Embedding IPFS: {embedding_ipfs_hash}")
-            
+
             # Also upload original image to IPFS (optional)
             logger.info("   📤 Uploading image to IPFS...")
             # Save frame to bytes
-            _, buffer = cv2.imencode('.jpg', frame)
+            _, buffer = cv2.imencode(".jpg", frame)
             image_bytes = buffer.tobytes()
             face_image_ipfs_hash = get_ipfs_client().add_file_bytes(image_bytes)
             logger.info(f"   ✅ Image IPFS: {face_image_ipfs_hash}")
@@ -143,7 +143,9 @@ async def register_did(face_id: str, face_ipfs_hash: str, owner_address: str):
         logger.info(f"📝 Registering DID for face: {face_id}")
 
         # 1. Create DIDDatum (offchain)
-        datum = get_did_manager().create_did_datum(face_id, face_ipfs_hash, owner_address)
+        datum = get_did_manager().create_did_datum(
+            face_id, face_ipfs_hash, owner_address
+        )
         logger.info(f"   ✅ DIDDatum created: {datum.did_id.hex()[:8]}...")
 
         # 2. Validate datum (mirrors validator logic)
@@ -242,7 +244,9 @@ async def verify_face(did_id: str, face_ipfs_hash: str, verifier_address: str):
 
         # 2. Create DIDDatum for verification
         # (Datum should match the stored one with new face hash)
-        datum = get_did_manager().create_did_datum(did_id, face_ipfs_hash, verifier_address)
+        datum = get_did_manager().create_did_datum(
+            did_id, face_ipfs_hash, verifier_address
+        )
         logger.info(f"   ✅ Verification datum created")
 
         # 3. Validate datum (mirrors validator logic)
@@ -354,13 +358,15 @@ async def list_dids():
 
 
 @router.post("/did/create")
-async def create_did(request_body: dict = None, face_embedding: str = None, did_id: str = None):
+async def create_did(
+    request_body: dict = None, face_embedding: str = None, did_id: str = None
+):
     """
     Create new DID with face embedding
     - Auto-generates DID ID if not provided
     - Auto-uploads embedding to IPFS if raw bytes provided
     - Locks 2 ADA to script address
-    
+
     Request body can be:
     {
         "face_embedding": "base64_encoded_embedding_or_ipfs_hash",
@@ -371,26 +377,26 @@ async def create_did(request_body: dict = None, face_embedding: str = None, did_
         import hashlib
         import json
         from typing import Optional
-        
+
         # Handle both query params and JSON body
         if request_body is None:
             request_body = {}
-        
+
         face_emb = request_body.get("face_embedding") or face_embedding
         custom_did_id = request_body.get("did_id") or did_id
-        
+
         if not face_emb:
             raise ValueError("face_embedding is required")
-        
+
         # Auto-generate DID ID from face embedding hash
         if not custom_did_id:
             emb_hash = hashlib.sha256(face_emb.encode()).hexdigest()[:12]
             custom_did_id = f"did:cardano:{emb_hash}"
             logger.info(f"   📝 Auto-generated DID ID: {custom_did_id}")
-        
+
         # Check if embedding is already IPFS hash (starts with Qm or bafy)
         is_ipfs_hash = face_emb.startswith("Qm") or face_emb.startswith("bafy")
-        
+
         if not is_ipfs_hash:
             # Auto-upload to IPFS if raw embedding
             logger.info(f"   📤 Uploading embedding to IPFS...")
@@ -399,7 +405,7 @@ async def create_did(request_body: dict = None, face_embedding: str = None, did_
         else:
             ipfs_hash = face_emb
             logger.info(f"   ✅ Using provided IPFS hash: {ipfs_hash}")
-        
+
         tx_hash = get_did_manager().create_did(custom_did_id, ipfs_hash)
 
         return {

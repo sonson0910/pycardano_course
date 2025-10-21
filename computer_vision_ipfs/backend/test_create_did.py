@@ -13,6 +13,10 @@ import os
 import time
 from pathlib import Path
 
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
+
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -31,25 +35,35 @@ def test_create_did():
         print("\n[1/5] Initializing CardanoClient...")
         cardano = CardanoClient()
         print(f"   ✅ CardanoClient initialized")
-        print(f"   - Wallet: {str(cardano.wallet_address)[:20]}...")
-        print(f"   - Network: {cardano.network.name}")
+        print(f"   - Network: Cardano Preprod Testnet")
+        
+        # Load wallet
+        print("\n   Loading wallet...")
+        cardano.load_wallet("me_preprod.sk")
+        print(f"   ✅ Wallet loaded: {str(cardano.wallet_address)[:20]}...")
         
         # 2. Initialize DIDManager
         print("\n[2/5] Initializing DIDManager...")
-        did_manager = DIDManager(cardano=cardano)
+        did_manager = DIDManager(cardano_client=cardano)
         print(f"   ✅ DIDManager initialized")
         print(f"   - Storage location: ./dids_registry.json")
         
         # 3. Get wallet balance
         print("\n[3/5] Checking wallet balance...")
         sender = str(cardano.wallet_address)
-        utxos = cardano.get_utxos(sender)
-        print(f"   ✅ Wallet ready")
-        print(f"   - UTxOs available: {len(utxos)}")
-        if utxos:
-            total_lovelace = sum([u.amount.coin for u in utxos])
-            ada = total_lovelace / 1_000_000
-            print(f"   - Total balance: {ada:.2f} ADA")
+        # Note: context.utxos() returns PyCardano UTxO objects, not Blockfrost namespace
+        try:
+            utxos = cardano.context.utxos(sender)
+            print(f"   ✅ Wallet ready")
+            print(f"   - UTxOs available: {len(utxos)}")
+            if utxos:
+                # PyCardano UTxO objects have amount.coin property
+                total_lovelace = sum([u.output.amount.coin for u in utxos])
+                ada = total_lovelace / 1_000_000
+                print(f"   - Total balance: {ada:.2f} ADA")
+        except Exception as e:
+            print(f"   ⚠️  Could not fetch balance: {e}")
+            print(f"   - Proceeding anyway...")
         
         # 4. Create DID
         print("\n[4/5] Creating DID...")

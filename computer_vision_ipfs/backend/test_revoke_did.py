@@ -13,6 +13,10 @@ import os
 import time
 from pathlib import Path
 
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
+
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -31,7 +35,8 @@ def test_revoke_did(did_id=None):
         if did_id is None:
             print("\n[1/5] Creating test DID first...")
             cardano = CardanoClient()
-            did_manager = DIDManager(cardano=cardano)
+            cardano.load_wallet("me_preprod.sk")
+            did_manager = DIDManager(cardano_client=cardano)
             
             did_id = f"test-did-{int(time.time())}"
             face_ipfs_hash = "Qm" + "f" * 44
@@ -41,7 +46,8 @@ def test_revoke_did(did_id=None):
         else:
             print(f"\n[1/5] Using provided DID: {did_id}")
             cardano = CardanoClient()
-            did_manager = DIDManager(cardano=cardano)
+            cardano.load_wallet("me_preprod.sk")
+            did_manager = DIDManager(cardano_client=cardano)
         
         # 2. Verify DID exists
         print("\n[2/5] Verifying DID exists...")

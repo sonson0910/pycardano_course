@@ -1,6 +1,6 @@
 # 🚀 QUICK START GUIDE - Computer Vision + Blockchain DApp
 
-**Updated**: October 21, 2025  
+**Updated**: October 21, 2025
 **Status**: ✅ All fixes applied - Ready to run
 
 ---
@@ -366,14 +366,14 @@ https://preprod.cardanoscan.io/
 
 After setup, you should see:
 
-✅ Backend server running on port 8000  
-✅ API docs available at /docs  
-✅ Health endpoint returns 200 OK  
-✅ Smart contract compiles with 0 errors  
-✅ Create DID TX confirmed on testnet  
-✅ Unlock DID TX confirmed on testnet  
-✅ Face detection model loads without errors  
-✅ IPFS client ready (awaits Kubo/Pinata)  
+✅ Backend server running on port 8000
+✅ API docs available at /docs
+✅ Health endpoint returns 200 OK
+✅ Smart contract compiles with 0 errors
+✅ Create DID TX confirmed on testnet
+✅ Unlock DID TX confirmed on testnet
+✅ Face detection model loads without errors
+✅ IPFS client ready (awaits Kubo/Pinata)
 
 If all ✅, **you're ready to proceed!**
 

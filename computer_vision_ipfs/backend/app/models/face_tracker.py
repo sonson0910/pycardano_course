@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 # MediaPipe initialization moved to lazy loading
 try:
     import mediapipe as mp
+
     MEDIAPIPE_AVAILABLE = True
 except Exception as e:
     logger.warning(f"MediaPipe not available at import time: {e}")
@@ -57,7 +58,7 @@ class FaceTracker:
             self.mp_face_detection = mp.solutions.face_detection
             self.face_detector = self.mp_face_detection.FaceDetection(
                 model_selection=1,  # 1 for full-range, 0 for short-range
-                min_detection_confidence=min_detection_confidence
+                min_detection_confidence=min_detection_confidence,
             )
 
             # Initialize MediaPipe Face Mesh for landmarks
@@ -66,7 +67,7 @@ class FaceTracker:
                 static_image_mode=False,
                 max_num_faces=10,
                 min_detection_confidence=min_detection_confidence,
-                min_tracking_confidence=0.5
+                min_tracking_confidence=0.5,
             )
 
             self.min_confidence = min_detection_confidence
@@ -88,12 +89,11 @@ class FaceTracker:
 
     def _ensure_initialized(self):
         """Lazy initialize MediaPipe if initialization failed"""
-        if hasattr(self, '_initialization_failed') and self._initialization_failed:
+        if hasattr(self, "_initialization_failed") and self._initialization_failed:
             try:
                 self.mp_face_detection = mp.solutions.face_detection
                 self.face_detector = self.mp_face_detection.FaceDetection(
-                    model_selection=1,
-                    min_detection_confidence=self.min_confidence
+                    model_selection=1, min_detection_confidence=self.min_confidence
                 )
 
                 self.mp_face_mesh = mp.solutions.face_mesh
@@ -101,7 +101,7 @@ class FaceTracker:
                     static_image_mode=False,
                     max_num_faces=10,
                     min_detection_confidence=self.min_confidence,
-                    min_tracking_confidence=0.5
+                    min_tracking_confidence=0.5,
                 )
 
                 self._initialization_failed = False
@@ -153,11 +153,13 @@ class FaceTracker:
 
                         # Extract keypoints (6 points: eyes, nose, ears, mouth)
                         keypoints = {}
-                        for idx, kp in enumerate(detection.location_data.relative_keypoints):
+                        for idx, kp in enumerate(
+                            detection.location_data.relative_keypoints
+                        ):
                             keypoints[f"kp_{idx}"] = {
                                 "x": int(kp.x * w),
                                 "y": int(kp.y * h),
-                                "z": kp.z
+                                "z": kp.z,
                             }
 
                         face = FaceData(
@@ -205,13 +207,15 @@ class FaceTracker:
                         x = int(landmark.x * w)
                         y = int(landmark.y * h)
                         z = landmark.z
-                        landmarks.append({
-                            "idx": idx,
-                            "x": x,
-                            "y": y,
-                            "z": z,
-                            "visibility": landmark.presence
-                        })
+                        landmarks.append(
+                            {
+                                "idx": idx,
+                                "x": x,
+                                "y": y,
+                                "z": z,
+                                "visibility": landmark.presence,
+                            }
+                        )
 
                     landmarks_list.append(landmarks)
 

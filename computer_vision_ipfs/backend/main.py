@@ -52,6 +52,7 @@ app.add_middleware(
 # Include API routers
 app.include_router(router, prefix="/api/v1", tags=["vision-blockchain"])
 
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():

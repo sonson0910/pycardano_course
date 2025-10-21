@@ -13,6 +13,10 @@ import os
 import time
 from pathlib import Path
 
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
+
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -32,9 +36,10 @@ def test_complete_workflow():
         # Initialize
         print("\n[INIT] Initializing services...")
         cardano = CardanoClient()
-        did_manager = DIDManager(cardano=cardano)
+        cardano.load_wallet("me_preprod.sk")
+        did_manager = DIDManager(cardano_client=cardano)
         
-        wallet_balance = sum([u.amount.coin for u in cardano.get_utxos(str(cardano.wallet_address))])
+        wallet_balance = sum([u.output.amount.coin for u in cardano.context.utxos(str(cardano.wallet_address))])
         ada = wallet_balance / 1_000_000
         print(f"   ✅ Ready")
         print(f"   - Wallet balance: {ada:.2f} ADA")
