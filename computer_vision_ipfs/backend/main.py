@@ -4,10 +4,17 @@ Face Tracking with DIDs and IPFS Integration
 """
 
 import logging
+import os
 from contextlib import asynccontextmanager
+from pathlib import Path
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import router
+
+# Load environment variables from .env file in parent directory
+env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 # Configure logging
 logging.basicConfig(
@@ -69,4 +76,5 @@ async def root():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")
+    # Disable reload mode to avoid subprocess issues with MediaPipe on Windows
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False, log_level="info")

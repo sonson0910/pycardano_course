@@ -47,7 +47,9 @@ class CardanoClient:
     SCRIPT_HASH = "d959895d0621e37f1908e10771b728f8afbc84f18196dc44ebe3e982"
     MIN_UTXO = 2_000_000
     NETWORK = "testnet"
-    BLOCKFROST_API_URL = "https://cardano-preview.blockfrost.io"
+    
+    # Will be overridden from .env if available
+    BLOCKFROST_API_URL = os.environ.get("BLOCKFROST_BASE_URL", "https://cardano-preprod.blockfrost.io/api/")
 
     def __init__(self):
         project_id = os.environ.get("BLOCKFROST_PROJECT_ID")
@@ -57,13 +59,14 @@ class CardanoClient:
             )
 
         try:
+            # Note: version parameter removed - not supported in newer blockfrost-python
             self.client = BlockFrostApi(
-                project_id=project_id, base_url=self.BLOCKFROST_API_URL, version="v0"
+                project_id=project_id, base_url=self.BLOCKFROST_API_URL
             )
             health = self.client.health()
-            logger.info(f"Connected to Cardano Preview Testnet")
+            logger.info(f"✅ Connected to Cardano Testnet via Blockfrost")
         except Exception as e:
-            logger.error(f"Failed to connect: {e}")
+            logger.error(f"Failed to connect to Blockfrost: {e}")
             raise
 
         self.signing_key: Optional[PaymentSigningKey] = None

@@ -8,13 +8,13 @@ opencv-python>=4.8.0
 numpy>=1.24.0,<2.0.0
 pillow>=10.0.0
 
-# Face Detection (Alternative to mediapipe for better compatibility)
-# Option 1: MTCNN (recommended for Windows)
-mtcnn>=0.1.1
+# Face Detection & Landmarks (MediaPipe)
+mediapipe>=0.10.0
 
-# Option 2: Face Detection Models (choose one)
+# Option 2: Face Detection Models (choose one if needed)
 # opencv-python-headless>=4.8.0  # Lightweight alternative
 # dlib>=19.24  # Accurate but slower
+# mtcnn>=0.1.1  # MTCNN (old implementation)
 
 # Face Recognition & Processing
 scikit-image>=0.21.0

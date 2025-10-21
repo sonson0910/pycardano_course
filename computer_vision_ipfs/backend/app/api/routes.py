@@ -15,11 +15,43 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["face-tracking"])
 
-# Initialize components
-face_tracker = FaceTracker()
-ipfs_client = IPFSClient()
-cardano_client = CardanoClient(network="testnet")
-did_manager = DIDManager(cardano_client)
+# Initialize components (will be created on first use)
+face_tracker: Optional[FaceTracker] = None
+ipfs_client: Optional[IPFSClient] = None
+cardano_client: Optional[CardanoClient] = None
+did_manager: Optional[DIDManager] = None
+
+
+def get_face_tracker():
+    """Lazy load FaceTracker"""
+    global face_tracker
+    if face_tracker is None:
+        face_tracker = FaceTracker()
+    return face_tracker
+
+
+def get_ipfs_client():
+    """Lazy load IPFS client"""
+    global ipfs_client
+    if ipfs_client is None:
+        ipfs_client = IPFSClient()
+    return ipfs_client
+
+
+def get_cardano_client():
+    """Lazy load Cardano client"""
+    global cardano_client
+    if cardano_client is None:
+        cardano_client = CardanoClient()
+    return cardano_client
+
+
+def get_did_manager():
+    """Lazy load DID manager"""
+    global did_manager
+    if did_manager is None:
+        did_manager = DIDManager(get_cardano_client())
+    return did_manager
 
 
 @router.post("/detect-faces")
@@ -35,7 +67,7 @@ async def detect_faces(file: UploadFile = File(...)):
         if frame is None:
             raise HTTPException(status_code=400, detail="Invalid image")
 
-        faces = face_tracker.track_faces(frame)
+        faces = get_face_tracker().track_faces(frame)
 
         return {
             "status": "success",
@@ -72,11 +104,11 @@ async def register_did(face_id: str, face_ipfs_hash: str, owner_address: str):
         logger.info(f"📝 Registering DID for face: {face_id}")
 
         # 1. Create DIDDatum (offchain)
-        datum = did_manager.create_did_datum(face_id, face_ipfs_hash, owner_address)
+        datum = get_did_manager().create_did_datum(face_id, face_ipfs_hash, owner_address)
         logger.info(f"   ✅ DIDDatum created: {datum.did_id.hex()[:8]}...")
 
         # 2. Validate datum (mirrors validator logic)
-        did_manager.validate_register_datum(datum)
+        get_did_manager().validate_register_datum(datum)
         logger.info(f"   ✅ Register validation passed")
 
         # 3. Create Register action
@@ -87,7 +119,7 @@ async def register_did(face_id: str, face_ipfs_hash: str, owner_address: str):
         from pycardano import Address
 
         sender = Address(owner_address)
-        utxos = cardano_client.get_utxos(sender)
+        utxos = get_cardano_client().get_utxos(sender)
 
         if not utxos:
             raise HTTPException(
@@ -97,13 +129,13 @@ async def register_did(face_id: str, face_ipfs_hash: str, owner_address: str):
         # 5. Calculate change
         total_input = sum(utxo.amount.coin for utxo in utxos)
         fees = 500_000  # ~0.5 ADA estimate
-        change_amount = total_input - cardano_client.MIN_UTXO - fees
+        change_amount = total_input - get_cardano_client().MIN_UTXO - fees
 
         if change_amount < 0:
             raise HTTPException(status_code=400, detail="Insufficient balance")
 
         # 6. Build script transaction
-        tx = cardano_client.build_script_transaction(
+        tx = get_cardano_client().build_script_transaction(
             action=action,
             datum=datum,
             input_utxo=utxos[0],
@@ -166,20 +198,20 @@ async def verify_face(did_id: str, face_ipfs_hash: str, verifier_address: str):
         logger.info(f"🔍 Verifying face against DID: {did_id[:8]}...")
 
         # 1. Get stored DID document
-        stored_doc = did_manager.get_did_document(did_id)
+        stored_doc = get_did_manager().get_did_document(did_id)
         logger.info(f"   ✅ Retrieved stored DID document")
 
         # 2. Create DIDDatum for verification
         # (Datum should match the stored one with new face hash)
-        datum = did_manager.create_did_datum(did_id, face_ipfs_hash, verifier_address)
+        datum = get_did_manager().create_did_datum(did_id, face_ipfs_hash, verifier_address)
         logger.info(f"   ✅ Verification datum created")
 
         # 3. Validate datum (mirrors validator logic)
-        did_manager.validate_verify_datum(datum)
+        get_did_manager().validate_verify_datum(datum)
         logger.info(f"   ✅ Verify validation passed")
 
         # 4. Verify face embedding offline
-        is_verified = did_manager.verify_face_identity(did_id, face_ipfs_hash)
+        is_verified = get_did_manager().verify_face_identity(did_id, face_ipfs_hash)
         logger.info(f"   ✅ Face embedding verified: {is_verified}")
 
         # 5. Create Verify action
@@ -187,7 +219,7 @@ async def verify_face(did_id: str, face_ipfs_hash: str, verifier_address: str):
         logger.info(f"   ✅ Verify action created")
 
         # 6. Get script UTxO for this DID
-        script_utxo = cardano_client.query_script_utxo(did_id)
+        script_utxo = get_cardano_client().query_script_utxo(did_id)
 
         if not script_utxo:
             raise HTTPException(
@@ -198,7 +230,7 @@ async def verify_face(did_id: str, face_ipfs_hash: str, verifier_address: str):
         from pycardano import Address
 
         verifier = Address(verifier_address)
-        utxos = cardano_client.get_utxos(verifier)
+        utxos = get_cardano_client().get_utxos(verifier)
 
         if not utxos:
             raise HTTPException(
@@ -208,7 +240,7 @@ async def verify_face(did_id: str, face_ipfs_hash: str, verifier_address: str):
         # 8. Calculate change
         total_input = sum(utxo.amount.coin for utxo in utxos)
         fees = 500_000  # ~0.5 ADA estimate
-        change_amount = total_input - cardano_client.MIN_UTXO - fees
+        change_amount = total_input - get_cardano_client().MIN_UTXO - fees
 
         if change_amount < 0:
             raise HTTPException(
@@ -216,7 +248,7 @@ async def verify_face(did_id: str, face_ipfs_hash: str, verifier_address: str):
             )
 
         # 9. Build script transaction
-        tx = cardano_client.build_script_transaction(
+        tx = get_cardano_client().build_script_transaction(
             action=action,
             datum=datum,
             input_utxo=script_utxo,
@@ -260,7 +292,7 @@ async def get_did_document(did: str):
     Get DID document
     """
     try:
-        doc = did_manager.get_did_document(did)
+        doc = get_did_manager().get_did_document(did)
 
         return {"status": "success", "did_document": doc}
     except ValueError as e:
@@ -275,7 +307,7 @@ async def list_dids():
     List all DIDs
     """
     try:
-        dids = did_manager.list_dids()
+        dids = get_did_manager().list_dids()
 
         return {"status": "success", "total_dids": len(dids), "dids": dids}
     except Exception as e:
@@ -289,7 +321,7 @@ async def create_did(did_id: str, face_embedding: str):
     Locks 2 ADA to script address
     """
     try:
-        tx_hash = did_manager.create_did(did_id, face_embedding)
+        tx_hash = get_did_manager().create_did(did_id, face_embedding)
 
         return {
             "status": "success",
@@ -309,7 +341,7 @@ async def register_did(did: str):
     Validates DID and face hash non-empty
     """
     try:
-        tx_hash = did_manager.register_did(did)
+        tx_hash = get_did_manager().register_did(did)
 
         return {
             "status": "success",
@@ -330,7 +362,7 @@ async def update_did(did: str, new_face_embedding: str):
     Updates face embedding or metadata
     """
     try:
-        tx_hash = did_manager.update_did(did, new_face_embedding)
+        tx_hash = get_did_manager().update_did(did, new_face_embedding)
 
         return {
             "status": "success",
@@ -351,7 +383,7 @@ async def verify_did(did: str):
     Checks data integrity (read-only)
     """
     try:
-        result = did_manager.verify_did(did)
+        result = get_did_manager().verify_did(did)
 
         return {
             "status": "success",
@@ -372,7 +404,7 @@ async def revoke_did(did: str):
     Permanently disables DID
     """
     try:
-        tx_hash = did_manager.revoke_did(did)
+        tx_hash = get_did_manager().revoke_did(did)
 
         return {
             "status": "success",
@@ -392,7 +424,7 @@ async def get_did_status(did: str):
     Get DID status and transaction history
     """
     try:
-        status = did_manager.get_did_status(did)
+        status = get_did_manager().get_did_status(did)
 
         return {"status": "success", "did": did, "data": status}
     except Exception as e:
