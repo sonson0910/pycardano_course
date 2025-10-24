@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, File, UploadFile, HTTPException, Request
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from typing import List, Optional
 import cv2
 import numpy as np
@@ -10,6 +11,13 @@ from ..models import FaceTracker
 from ..ipfs import IPFSClient
 from ..blockchain import CardanoClient, DIDManager
 from ..blockchain.cardano_client import Register, Update, Verify, Revoke
+
+
+class FaceEmbeddingRequest(BaseModel):
+    """Request body for face embedding verification"""
+
+    face_embedding: str  # IPFS hash of face embedding
+
 
 logger = logging.getLogger(__name__)
 
@@ -513,20 +521,30 @@ async def update_did(did: str, request: Request):
 
 
 @router.post("/did/{did}/verify")
-async def verify_did(did: str):
+async def verify_did(did: str, body: FaceEmbeddingRequest):
     """
     Verify DID - Execute Verify redeemer
-    Checks data integrity (read-only)
+    Compares face embedding with stored DID face
+
+    Args:
+        did: DID to verify
+        body: {
+            "face_embedding": "IPFS hash of face embedding to verify against"
+        }
     """
     try:
-        result = get_did_manager().verify_did(did)
+        # If face_embedding provided, use it; otherwise verify with stored
+        confidence = get_did_manager().verify_did_with_confidence(
+            did, body.face_embedding
+        )
 
         return {
             "status": "success",
             "did": did,
             "action": "verify",
-            "verified": result,
-            "message": "DID verified successfully",
+            "verified": confidence > 0.5,
+            "confidence": confidence,
+            "message": f"Face similarity: {(confidence * 100):.2f}%",
         }
     except Exception as e:
         logger.error(f"Error verifying DID: {e}")

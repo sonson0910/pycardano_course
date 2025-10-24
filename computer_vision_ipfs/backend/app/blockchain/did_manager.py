@@ -285,6 +285,100 @@ class DIDManager:
             logger.error(f"Face verification error: {e}")
             raise
 
+    def verify_did_with_confidence(self, did: str, new_face_hash: str = None) -> float:
+        """
+        Verify DID face and return confidence score (0-1)
+        Uses cosine similarity to compare face embedding vectors
+
+        Args:
+            did: DID to verify
+            new_face_hash: IPFS hash of new face embedding to compare (optional)
+
+        Returns:
+            Confidence score 0-1 (1.0 = perfect match, 0.0 = no match)
+        """
+        try:
+            import numpy as np
+            from scipy.spatial.distance import cosine
+
+            if did not in self.dids:
+                raise ValueError(f"DID not found: {did}")
+
+            stored_hash = self.dids[did]["datum"].face_ipfs_hash.decode()
+
+            # If no new hash provided, return stored verification status
+            if not new_face_hash:
+                is_verified = self.dids[did]["datum"].verified
+                return 1.0 if is_verified else 0.0
+
+            # Same IPFS hash = identical image = 100% match
+            if stored_hash == new_face_hash:
+                self.dids[did]["datum"].verified = True
+                logger.info(
+                    f"✅ Face verified for DID {did}: 100% match (identical image)"
+                )
+                return 1.0
+
+            # Different hashes - compare actual embedding vectors
+            logger.info(
+                f"📊 Comparing embeddings: {stored_hash[:12]}... vs {new_face_hash[:12]}..."
+            )
+
+            try:
+                from ..ipfs import IPFSClient
+
+                ipfs_client = IPFSClient()
+
+                # Retrieve stored embedding from IPFS
+                stored_data = ipfs_client.get_json(stored_hash)
+                if not stored_data or "embedding" not in stored_data:
+                    logger.error(
+                        f"❌ No embedding found in stored data for {stored_hash}"
+                    )
+                    return 0.0
+
+                stored_embedding = np.array(stored_data["embedding"], dtype=np.float32)
+                logger.info(f"   Stored embedding shape: {stored_embedding.shape}")
+
+                # Retrieve new embedding from IPFS
+                new_data = ipfs_client.get_json(new_face_hash)
+                if not new_data or "embedding" not in new_data:
+                    logger.error(
+                        f"❌ No embedding found in new data for {new_face_hash}"
+                    )
+                    return 0.0
+
+                new_embedding = np.array(new_data["embedding"], dtype=np.float32)
+                logger.info(f"   New embedding shape: {new_embedding.shape}")
+
+                # Compute cosine similarity (1 - distance)
+                # cosine distance ranges 0-2, so 1 - distance gives similarity 0-1
+                distance = cosine(stored_embedding, new_embedding)
+                similarity = 1.0 - distance
+
+                confidence = float(similarity)
+                logger.info(f"✅ Embedding similarity: {(confidence * 100):.2f}%")
+
+                # Update verified status if confidence high enough
+                if confidence > 0.7:  # 70% threshold for same person
+                    self.dids[did]["datum"].verified = True
+                    logger.info(f"   ✅ DID verified (confidence > 70%)")
+
+                return confidence
+
+            except Exception as e:
+                logger.error(f"❌ Error comparing embeddings: {e}")
+                # Fallback to hash comparison
+                return 0.0
+
+        except Exception as e:
+            logger.error(f"❌ Verification error: {e}")
+            raise
+
+        except Exception as e:
+            logger.error(f"Confidence verification error: {e}")
+            raise
+
     def get_did_document(self, did: str) -> Dict:
         """
         Get DID document
