@@ -49,6 +49,7 @@ export const DIDAManagement: React.FC<{
   const [success, setSuccess] = useState<string | null>(null);
   const [verifyResult, setVerifyResult] = useState<VerifyResult | null>(null);
   const [verifyLoading, setVerifyLoading] = useState(false);
+  const [uploadingFace, setUploadingFace] = useState(false);
 
   const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api/v1';
 
@@ -100,7 +101,7 @@ export const DIDAManagement: React.FC<{
       const response = await fetch(`${API_BASE}/did/${did}/status`);
       if (!response.ok) throw new Error('Failed to fetch DID status');
       const data = await response.json();
-      
+
       // Convert API response to DID format
       const didData = data.data;
       const selectedDIDData: DID = {
@@ -112,10 +113,42 @@ export const DIDAManagement: React.FC<{
         lastUpdated: new Date().toISOString(),
         txHistory: [] // TODO: Add tx history from API
       };
-      
+
       setSelectedDID(selectedDIDData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch DID status');
+    }
+  };
+
+  // Detect faces and upload to IPFS
+  const detectFaces = async (file: File) => {
+    setUploadingFace(true);
+    setError(null);
+    try {
+      const formDataObj = new FormData();
+      formDataObj.append('file', file);
+
+      const response = await fetch(`${API_BASE}/detect-faces`, {
+        method: 'POST',
+        body: formDataObj,
+      });
+
+      if (!response.ok) throw new Error('Failed to detect faces');
+      const data = await response.json();
+
+      if (data.embedding_ipfs_hash) {
+        setFormData({
+          ...formData,
+          faceEmbedding: data.embedding_ipfs_hash,
+        });
+        setSuccess(`✅ Ảnh đã được upload! IPFS: ${data.embedding_ipfs_hash.substring(0, 20)}...`);
+      } else {
+        setError('No faces detected in image');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload image');
+    } finally {
+      setUploadingFace(false);
     }
   };
 
@@ -403,6 +436,21 @@ export const DIDAManagement: React.FC<{
           </div>
 
           <div className="form-group">
+            <label>Upload Face Image</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files?.[0]) {
+                  detectFaces(e.target.files[0]);
+                }
+              }}
+              disabled={uploadingFace || loading}
+            />
+            {uploadingFace && <p className="loading-text">Uploading and detecting faces...</p>}
+          </div>
+
+          <div className="form-group">
             <label>Face Embedding Hash</label>
             <textarea
               placeholder="QmYourIPFSHash..."
@@ -475,6 +523,28 @@ export const DIDAManagement: React.FC<{
               <strong>🔗 IPFS:</strong> <code>{selectedDID.faceHash}</code>
             </p>
           </div>
+
+          {/* Upload Image for Update/Verify */}
+          {(selectedDID.status === 'registered' || selectedDID.status === 'updated' || selectedDID.status === 'verified') && (
+            <div className="form-group upload-section">
+              <label>📷 Upload New Face Image for Update/Verify</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    detectFaces(e.target.files[0]);
+                  }
+                }}
+                disabled={uploadingFace || loading}
+                title="Upload a new face image"
+              />
+              {uploadingFace && <p className="loading-text">Uploading and detecting faces...</p>}
+              {formData.faceEmbedding && (
+                <p className="success-text">✅ Ready: {formData.faceEmbedding.substring(0, 30)}...</p>
+              )}
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="actions-grid">
