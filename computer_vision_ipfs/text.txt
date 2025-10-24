@@ -1,0 +1,203 @@
+2025-10-22 23:32:41,400 - app.blockchain.cardano_client - INFO - Wallet loaded: addr_test1vzmz068kmst73c9tw6t5nzvt643k32w78n4n8q5nquq5dygequ7fd
+2025-10-22 23:32:41,400 - app.blockchain.did_manager - INFO -    🔑 Wallet loaded successfully
+2025-10-22 23:32:41,400 - app.blockchain.did_manager - ERROR - ❌ Failed to create DID: local variable 'owner_address' referenced before assignment
+2025-10-22 23:32:41,400 - app.api.routes - ERROR - Error creating DID: local variable 'owner_address' referenced before assignment
+INFO:     127.0.0.1:47998 - "POST /api/v1/did/create HTTP/1.1" 500 Internal Server Error
+
+sudo docker stop $(sudo docker ps -aq)
+
+W0000 00:00:1761232119.899116   47788 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+2025-10-23 22:08:39,904 - app.api.routes - INFO -    ✅ Detected 1 face(s)
+2025-10-23 22:08:39,904 - app.api.routes - INFO -    📤 Uploading embedding to IPFS...
+2025-10-23 22:08:39,910 - app.ipfs.ipfs_client - INFO - Bytes uploaded to IPFS: QmaXccPxb4HtmVuhkLfRMVi8fJqfT1xrqiqTTv7StzsHc4
+2025-10-23 22:08:39,911 - app.api.routes - INFO -    ✅ Embedding IPFS: QmaXccPxb4HtmVuhkLfRMVi8fJqfT1xrqiqTTv7StzsHc4
+2025-10-23 22:08:39,911 - app.api.routes - INFO -    📤 Uploading image to IPFS...
+2025-10-23 22:08:39,928 - app.ipfs.ipfs_client - INFO - Bytes uploaded to IPFS: QmY23FiwdwFBCmHsfCGNcvj4ovR3PvkXjsgpCbP6DJKyqX
+2025-10-23 22:08:39,928 - app.api.routes - INFO -    ✅ Image IPFS: QmY23FiwdwFBCmHsfCGNcvj4ovR3PvkXjsgpCbP6DJKyqX
+INFO:     127.0.0.1:54036 - "POST /api/v1/detect-faces HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54036 - "OPTIONS /api/v1/did/create HTTP/1.1" 200 OK
+2025-10-23 22:08:42,169 - app.api.routes - INFO -    ✅ Using provided IPFS hash: QmaXccPxb4HtmVuhkLfRMVi8fJqfT1xrqiqTTv7StzsHc4
+2025-10-23 22:08:46,198 - app.blockchain.cardano_client - INFO - ✅ Connected to Cardano Testnet via Blockfrost
+2025-10-23 22:08:46,978 - app.blockchain.cardano_client - INFO - ✅ BlockFrostChainContext initialized for PyCardano
+2025-10-23 22:08:46,980 - app.blockchain.did_manager - INFO - 📝 Creating DID: did:cardano:17612321...
+2025-10-23 22:08:47,018 - app.blockchain.cardano_client - INFO - Wallet loaded: addr_test1vzmz068kmst73c9tw6t5nzvt643k32w78n4n8q5nquq5dygequ7fd
+2025-10-23 22:08:47,018 - app.blockchain.did_manager - INFO -    🔑 Wallet loaded successfully
+2025-10-23 22:08:47,019 - app.blockchain.did_manager - INFO -    📍 Using wallet address: addr_test1vzmz068kmst73c9tw6t5nzvt643k32w78n4n8q5nquq5dygequ7fd
+2025-10-23 22:08:47,019 - app.blockchain.did_manager - INFO - ✅ DIDDatum created: 32333233...
+2025-10-23 22:08:47,019 - app.blockchain.did_manager - INFO -    - did_id: 12 bytes
+2025-10-23 22:08:47,019 - app.blockchain.did_manager - INFO -    - face_ipfs_hash: 46 bytes
+2025-10-23 22:08:47,019 - app.blockchain.did_manager - INFO -    - owner: 28 bytes
+2025-10-23 22:08:47,019 - app.blockchain.did_manager - INFO -    - created_at: 1761232127019 ms
+2025-10-23 22:08:47,019 - app.blockchain.did_manager - INFO -    - verified: 0
+2025-10-23 22:08:47,019 - app.blockchain.did_manager - INFO - ✅ Register action validation passed
+[DEBUG] build_script_transaction() ENTRY
+2025-10-23 22:08:47,019 - app.blockchain.cardano_client - INFO - 🔨 Building REAL script transaction with Create redeemer...
+2025-10-23 22:08:47,019 - app.blockchain.cardano_client - INFO - Create validation passed
+2025-10-23 22:08:47,019 - app.blockchain.cardano_client - INFO -    📝 Building with PyCardano (REAL TX)...
+2025-10-23 22:08:47,020 - app.blockchain.cardano_client - INFO -    📦 Fetching UTxOs from blockchain...
+[DEBUG] EXCEPTION in build_script_transaction(): ValueError
+[DEBUG] Exception message: ❌ No UTxOs available for transaction
+Traceback (most recent call last):
+  File "/media/son/Projects1/venera/cardano/pycardano_course/computer_vision_ipfs/backend/app/blockchain/cardano_client.py", line 336, in build_script_transaction
+    raise ValueError("❌ No UTxOs available for transaction")
+ValueError: ❌ No UTxOs available for transaction
+2025-10-23 22:08:48,622 - app.blockchain.cardano_client - ERROR - ❌ Failed to build script transaction: ❌ No UTxOs available for transaction
+2025-10-23 22:08:48,622 - app.blockchain.did_manager - ERROR - ❌ Failed to create DID: ❌ No UTxOs available for transaction
+2025-10-23 22:08:48,622 - app.api.routes - ERROR - Error creating DID: ❌ No UTxOs available for transaction
+INFO:     127.0.0.1:54036 - "POST /api/v1/did/create HTTP/1.1" 500 Internal Server Error
+
+
+
+[DEBUG] build_script_transaction() ENTRY
+2025-10-23 22:50:56,507 - app.blockchain.cardano_client - INFO - 🔨 Building REAL script transaction with Create redeemer...
+2025-10-23 22:50:56,508 - app.blockchain.cardano_client - INFO - Create validation passed
+2025-10-23 22:50:56,508 - app.blockchain.cardano_client - INFO -    📝 Building with PyCardano (REAL TX)...
+2025-10-23 22:50:56,508 - app.blockchain.cardano_client - INFO -    📦 Fetching UTxOs from blockchain...
+2025-10-23 22:50:58,605 - app.blockchain.cardano_client - INFO -    ✅ Found 1 wallet UTxO(s) on blockchain
+2025-10-23 22:50:58,605 - app.blockchain.cardano_client - INFO -    🔨 Building transaction...
+2025-10-23 22:50:58,605 - app.blockchain.cardano_client - INFO -    💰 Spending wallet UTxO...
+2025-10-23 22:50:58,605 - app.blockchain.cardano_client - INFO -       - Wallet input: d1bf8d96599c919c... (value: 9926291874 lovelace)
+2025-10-23 22:50:58,605 - app.blockchain.cardano_client - INFO -    ✍️  Adding script output...
+2025-10-23 22:50:58,605 - app.blockchain.cardano_client - INFO -    📤 Added output locked to script: 1.5 ADA
+2025-10-23 22:50:58,605 - app.blockchain.cardano_client - INFO -    ✍️  Building and signing transaction...
+2025-10-23 22:50:59,200 - app.blockchain.cardano_client - INFO -    ✓ Transaction signed
+2025-10-23 22:50:59,201 - app.blockchain.cardano_client - INFO -    📋 CBOR size: 358 bytes
+2025-10-23 22:50:59,201 - app.blockchain.cardano_client - INFO -    📋 CBOR (first 100 chars): 84a300d9010281825820d1bf8d96599c919cba9b9538509e493507fefac43b09657d4f1ad32b25d895f1010182a300581d70...
+2025-10-23 22:50:59,201 - app.blockchain.cardano_client - INFO -    #️⃣  TX Hash: 268b4a169720260698c7ccbb684f9aa42ea00297181085a7992a31af01d4ae27
+2025-10-23 22:50:59,201 - app.blockchain.cardano_client - INFO - ✅ REAL Script transaction built successfully
+2025-10-23 22:50:59,201 - app.blockchain.cardano_client - INFO -    - Action: Create
+2025-10-23 22:50:59,201 - app.blockchain.cardano_client - INFO -    - DID: 31363237...
+2025-10-23 22:50:59,201 - app.blockchain.cardano_client - INFO -    - TX Hash: 268b4a1697202606...
+2025-10-23 22:50:59,201 - app.blockchain.cardano_client - INFO - 📤 Submitting transaction to blockchain...
+2025-10-23 22:51:00,102 - app.blockchain.cardano_client - INFO - ✅ Transaction submitted successfully!
+2025-10-23 22:51:00,103 - app.blockchain.cardano_client - INFO -    - TX Hash: 021e7aaec08b00632f5c7746df3e952e46ecb50ce8223a85aa202f80f312c779
+2025-10-23 22:51:00,103 - app.blockchain.cardano_client - INFO -    - Action: Create
+2025-10-23 22:51:00,103 - app.blockchain.cardano_client - INFO - ⏳ Waiting for confirmation (30+ seconds)...
+2025-10-23 22:51:11,345 - app.blockchain.cardano_client - INFO -    - Waiting... (25s remaining)
+2025-10-23 22:51:25,870 - app.blockchain.cardano_client - INFO -    - Waiting... (20s remaining)
+2025-10-23 22:51:35,192 - app.blockchain.cardano_client - INFO -    - Waiting... (15s remaining)
+2025-10-23 22:51:48,326 - app.blockchain.cardano_client - INFO -    - Waiting... (10s remaining)
+2025-10-23 22:52:00,071 - app.blockchain.cardano_client - INFO - ✅ Transaction confirmed on blockchain!
+2025-10-23 22:52:00,072 - app.blockchain.cardano_client - INFO -    - Block: e372d1cf922d7a72fbfe5d3a9a0541745f4df6df5790502162ae7f2c53259b70
+2025-10-23 22:52:00,072 - app.blockchain.cardano_client - INFO -    - Index: 0
+2025-10-23 22:52:00,073 - app.blockchain.cardano_client - INFO - ⏳ Waiting 15s for UTxO propagation...
+2025-10-23 22:52:00,073 - app.blockchain.cardano_client - INFO -    - 15s remaining...
+2025-10-23 22:52:05,077 - app.blockchain.cardano_client - INFO -    - 10s remaining...
+2025-10-23 22:52:10,082 - app.blockchain.cardano_client - INFO -    - 5s remaining...
+2025-10-23 22:52:15,087 - app.blockchain.cardano_client - INFO - ✅ Ready for next operation!
+2025-10-23 22:52:15,088 - app.blockchain.did_manager - INFO - ✅ DID created (TX submitted): did:cardano:1761234649518:QmaXccPx
+INFO:     127.0.0.1:50546 - "POST /api/v1/did/create HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51854 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35862 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40334 - "GET /api/v1/health HTTP/1.1" 200 OK
+
+
+025-10-23 23:41:48,741 - app.blockchain.cardano_client - INFO - 🔨 Building REAL script transaction with Create redeemer...
+2025-10-23 23:41:48,741 - app.blockchain.cardano_client - INFO - Create validation passed
+2025-10-23 23:41:48,741 - app.blockchain.cardano_client - INFO -    📝 Building with PyCardano (REAL TX)...
+2025-10-23 23:41:48,741 - app.blockchain.cardano_client - INFO -    📦 Fetching UTxOs from blockchain...
+2025-10-23 23:41:49,356 - app.blockchain.cardano_client - INFO -    ✅ Found 1 wallet UTxO(s) on blockchain
+2025-10-23 23:41:49,356 - app.blockchain.cardano_client - INFO -    🔨 Building transaction...
+2025-10-23 23:41:49,356 - app.blockchain.cardano_client - INFO -    💰 Spending wallet UTxO...
+2025-10-23 23:41:49,357 - app.blockchain.cardano_client - INFO -       - Wallet input: 021e7aaec08b0063... (value: 9924620741 lovelace)
+2025-10-23 23:41:49,357 - app.blockchain.cardano_client - INFO -    ✍️  Adding script output...
+2025-10-23 23:41:49,357 - app.blockchain.cardano_client - INFO -    📤 Added output locked to script: 1.5 ADA
+2025-10-23 23:41:49,357 - app.blockchain.cardano_client - INFO -    ✍️  Building and signing transaction...
+2025-10-23 23:41:49,992 - app.blockchain.cardano_client - INFO -    ✓ Transaction signed
+2025-10-23 23:41:49,993 - app.blockchain.cardano_client - INFO -    📋 CBOR size: 358 bytes
+2025-10-23 23:41:49,993 - app.blockchain.cardano_client - INFO -    📋 CBOR (first 100 chars): 84a300d9010281825820021e7aaec08b00632f5c7746df3e952e46ecb50ce8223a85aa202f80f312c779010182a300581d70...
+2025-10-23 23:41:49,993 - app.blockchain.cardano_client - INFO -    #️⃣  TX Hash: 8b1a14fa15d8f73e3a2e89318a4cd24a14944d5f2718d10b455b35567d983f9e
+2025-10-23 23:41:49,993 - app.blockchain.cardano_client - INFO - ✅ REAL Script transaction built successfully
+2025-10-23 23:41:49,993 - app.blockchain.cardano_client - INFO -    - Action: Create
+2025-10-23 23:41:49,993 - app.blockchain.cardano_client - INFO -    - DID: 33373132...
+2025-10-23 23:41:49,993 - app.blockchain.cardano_client - INFO -    - TX Hash: 8b1a14fa15d8f73e...
+2025-10-23 23:41:49,993 - app.blockchain.cardano_client - INFO - 📤 Submitting transaction to blockchain...
+2025-10-23 23:41:50,918 - app.blockchain.cardano_client - INFO - ✅ Transaction submitted successfully!
+2025-10-23 23:41:50,919 - app.blockchain.cardano_client - INFO -    - TX Hash: 55b1a215e92253b151c08df1ab1331e866bfaa9249e0710555fb37b7a6589207
+2025-10-23 23:41:50,919 - app.blockchain.cardano_client - INFO -    - Action: Create
+2025-10-23 23:41:50,919 - app.blockchain.cardano_client - INFO - ⏳ Waiting for confirmation (max 60 seconds)...
+2025-10-23 23:42:11,454 - app.blockchain.cardano_client - INFO -    - Waiting... (50s remaining)
+2025-10-23 23:42:28,590 - app.blockchain.cardano_client - INFO -    - Waiting... (40s remaining)
+2025-10-23 23:42:38,171 - app.blockchain.cardano_client - INFO - ✅ Transaction confirmed on blockchain!
+2025-10-23 23:42:38,172 - app.blockchain.cardano_client - INFO -    - Block: 29a67af5825a5bea8c8cc41874d3ec6f1fc4d0b31fd34dc3092fd05b9e85dc03
+2025-10-23 23:42:38,173 - app.blockchain.cardano_client - INFO -    - Index: 0
+2025-10-23 23:42:38,173 - app.blockchain.cardano_client - INFO - ⏳ Waiting 5s for UTxO propagation...
+
+
+2025-10-24 09:58:33,794 - app.blockchain.cardano_client - INFO - 📤 Submitting transaction to blockchain...
+2025-10-24 09:58:35,080 - app.blockchain.cardano_client - INFO - ✅ Transaction submitted successfully!
+2025-10-24 09:58:35,081 - app.blockchain.cardano_client - INFO -    - TX Hash: 050205c03a8fe1c5fce5fd7eef528d887030fcbd5082fb73f92aa0cb952a405f
+2025-10-24 09:58:35,081 - app.blockchain.cardano_client - INFO -    - Action: Register
+2025-10-24 09:58:35,081 - app.blockchain.cardano_client - INFO - ⏳ Waiting for confirmation (max 60 seconds)...
+2025-10-24 09:58:36,316 - app.blockchain.cardano_client - INFO - ✅ Transaction confirmed on blockchain!
+2025-10-24 09:58:36,317 - app.blockchain.cardano_client - INFO -    - Block: b43d5daa06d2a8311d5da0c7f008179283e5a2f66befe3c2a47799f7423be452
+2025-10-24 09:58:36,317 - app.blockchain.cardano_client - INFO -    - Index: 0
+2025-10-24 09:58:36,317 - app.blockchain.cardano_client - INFO - ⏳ Waiting 5s for UTxO propagation...
+2025-10-24 09:58:41,323 - app.blockchain.cardano_client - INFO - ✅ Ready for next operation!
+2025-10-24 09:58:41,323 - app.blockchain.did_manager - INFO - ✅ DID registered (TX submitted: 050205c03a8fe1c5fce5fd7eef528d887030fcbd5082fb73f92aa0cb952a405f)
+INFO:     127.0.0.1:56868 - "POST /api/v1/did/did%3Acardano%3A1761274663181%3AQmaXccPx/register HTTP/1.1" 200 OK
+2025-10-24 09:58:43,335 - app.api.routes - ERROR - Error getting DID status: 'DIDManager' object has no attribute 'get_did_status'
+INFO:     127.0.0.1:56868 - "GET /api/v1/did/did%3Acardano%3A1761274663181%3AQmaXccPx/status HTTP/1.1" 500 Internal Server Error
+
+
+initEternlDomAPI: domId 102643-892852-106596 false
+initEternlDomAPI @ dom.js?token=212540-400913-514943:893Understand this warning
+dom.js?token=212540-400913-514943:894 initEternlDomAPI: href http://localhost:5173/
+initEternlDomAPI @ dom.js?token=212540-400913-514943:894Understand this warning
+chunk-VKLKESE7.js?v=7bd2a524:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+(index):1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.Understand this error
+FaceDetector.tsx:19 ℹ️ 🔗 Creating DID: did:cardano:1761275921015:QmaXccPx
+FaceDetector.tsx:19 ℹ️ 📤 IPFS Hash: QmaXccPxb4HtmVuhkLfRMVi8fJqfT1xrqiqTTv7StzsHc4
+react_jsx-dev-runtime.js?v=7bd2a524:64 Warning: Each child in a list should have a unique "key" prop.
+
+Check the render method of `DIDAManagement`. See https://reactjs.org/link/warning-keys for more information.
+    at div
+    at DIDAManagement (http://localhost:5173/src/components/DIDAManagement.tsx?t=1761275774478:20:34)
+    at div
+    at div
+    at div
+    at main
+    at div
+    at App (http://localhost:5173/src/App.tsx?t=1761275774555:25:41)
+printWarning @ react_jsx-dev-runtime.js?v=7bd2a524:64Understand this error
+13Unchecked runtime.lastError: The message port closed before a response was received.Understand this error
+2DIDAManagement.tsx:558 Uncaught TypeError: Cannot read properties of undefined (reading 'length')
+    at DIDAManagement (DIDAManagement.tsx:558:36)
+    at renderWithHooks (chunk-VKLKESE7.js?v=7bd2a524:11548:26)
+    at updateFunctionComponent (chunk-VKLKESE7.js?v=7bd2a524:14582:28)
+    at beginWork (chunk-VKLKESE7.js?v=7bd2a524:15924:22)
+    at HTMLUnknownElement.callCallback2 (chunk-VKLKESE7.js?v=7bd2a524:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-VKLKESE7.js?v=7bd2a524:3699:24)
+    at invokeGuardedCallback (chunk-VKLKESE7.js?v=7bd2a524:3733:39)
+    at beginWork$1 (chunk-VKLKESE7.js?v=7bd2a524:19765:15)
+    at performUnitOfWork (chunk-VKLKESE7.js?v=7bd2a524:19198:20)
+    at workLoopSync (chunk-VKLKESE7.js?v=7bd2a524:19137:13)Understand this error
+chunk-VKLKESE7.js?v=7bd2a524:14032 The above error occurred in the <DIDAManagement> component:
+
+    at DIDAManagement (http://localhost:5173/src/components/DIDAManagement.tsx?t=1761275774478:20:34)
+    at div
+    at div
+    at div
+    at main
+    at div
+    at App (http://localhost:5173/src/App.tsx?t=1761275774555:25:41)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ chunk-VKLKESE7.js?v=7bd2a524:14032Understand this error
+chunk-VKLKESE7.js?v=7bd2a524:19413 Uncaught TypeError: Cannot read properties of undefined (reading 'length')
+    at DIDAManagement (DIDAManagement.tsx:558:36)
+    at renderWithHooks (chunk-VKLKESE7.js?v=7bd2a524:11548:26)
+    at updateFunctionComponent (chunk-VKLKESE7.js?v=7bd2a524:14582:28)
+    at beginWork (chunk-VKLKESE7.js?v=7bd2a524:15924:22)
+    at beginWork$1 (chunk-VKLKESE7.js?v=7bd2a524:19753:22)
+    at performUnitOfWork (chunk-VKLKESE7.js?v=7bd2a524:19198:20)
+    at workLoopSync (chunk-VKLKESE7.js?v=7bd2a524:19137:13)
+    at renderRootSync (chunk-VKLKESE7.js?v=7bd2a524:19116:15)
+    at recoverFromConcurrentError (chunk-VKLKESE7.js?v=7bd2a524:18736:28)
+    at performConcurrentWorkOnRoot (chunk-VKLKESE7.js?v=7bd2a524:18684:30)Understand this error
+
+
+  🟢 ✅ Xác thực thành công! 0.00% giống
+🎯 Mức độ giống nhau:
+

@@ -503,3 +503,281 @@
     margin-top: 8px;
   }
 }
+
+/* Step Progress Styles */
+.step-progress {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 30px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.step-marker {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.step-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #999;
+  text-align: center;
+}
+
+.step.completed .step-label {
+  color: #667eea;
+}
+
+.step-connector {
+  position: absolute;
+  right: -50%;
+  top: 20px;
+  width: 100%;
+  height: 2px;
+  background-color: #ddd;
+  z-index: -1;
+}
+
+.step-connector.completed {
+  background-color: #667eea;
+}
+
+.step:last-child .step-connector {
+  display: none;
+}
+
+/* Verify Result Styles */
+.verify-result {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+  border-left: 4px solid #ddd;
+}
+
+.verify-result.success {
+  background: #f0f8f5;
+  border-left-color: #4caf50;
+}
+
+.verify-result.error {
+  background: #fef5f5;
+  border-left-color: #f44336;
+}
+
+.verify-header {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.verify-status {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.confidence-display {
+  margin: 15px 0;
+}
+
+.confidence-display p {
+  margin: 0 0 10px 0;
+  font-weight: 600;
+  color: #333;
+}
+
+.confidence-bar {
+  width: 100%;
+  height: 30px;
+  background-color: #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.confidence-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: width 0.5s ease;
+}
+
+.verify-tx {
+  margin-top: 15px;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  word-break: break-all;
+  color: #666;
+}
+
+/* Verified/Revoked Badges */
+.verified-badge,
+.revoked-badge {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-top: 15px;
+  width: 100%;
+  text-align: center;
+}
+
+.verified-badge {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  color: white;
+  box-shadow: 0 4px 6px rgba(76, 175, 80, 0.3);
+}
+
+.revoked-badge {
+  background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
+  color: white;
+  box-shadow: 0 4px 6px rgba(244, 67, 54, 0.3);
+}
+
+/* Status Display Info */
+.status-info {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.status-info p {
+  margin: 8px 0;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.status-info strong {
+  color: #667eea;
+  font-weight: 600;
+}
+
+.status-info code {
+  background: #e8e9f3;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #667eea;
+}
+
+/* DID Status Badges */
+.did-status-created {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.did-status-registered {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.did-status-updated {
+  background: #e3f2fd;
+  color: #01579b;
+}
+
+.did-status-verified {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.did-status-revoked {
+  background: #ffebee;
+  color: #b71c1c;
+}
+
+/* Actions Grid */
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.btn-register,
+.btn-update,
+.btn-verify,
+.btn-revoke {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.btn-register {
+  background-color: #2196f3;
+  color: white;
+}
+
+.btn-register:hover:not(:disabled) {
+  background-color: #1976d2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.btn-update {
+  background-color: #ff9800;
+  color: white;
+}
+
+.btn-update:hover:not(:disabled) {
+  background-color: #f57c00;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3);
+}
+
+.btn-verify {
+  background-color: #4caf50;
+  color: white;
+}
+
+.btn-verify:hover:not(:disabled) {
+  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-revoke {
+  background-color: #f44336;
+  color: white;
+}
+
+.btn-revoke:hover:not(:disabled) {
+  background-color: #da190b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}

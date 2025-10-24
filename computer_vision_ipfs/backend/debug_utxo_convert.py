@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from pycardano import UTxO, TransactionInput, TransactionOutput, Address, Value
@@ -27,8 +28,7 @@ print(f"\nTransactionInput: {tx_in}")
 # Create TransactionOutput
 lovelace_amount = int(bf_utxo.amount[0].quantity)
 tx_out = TransactionOutput(
-    Address.from_primitive(bf_utxo.address),
-    Value(lovelace_amount)
+    Address.from_primitive(bf_utxo.address), Value(lovelace_amount)
 )
 print(f"TransactionOutput: {tx_out}")
 

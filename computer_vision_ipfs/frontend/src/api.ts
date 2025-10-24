@@ -8,7 +8,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const api = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 30000,
+    timeout: 60000, // Increased to 60 seconds
 });
 
 /**
@@ -71,6 +71,40 @@ export const getDIDDocument = async (did: string) => {
  */
 export const listDIDs = async () => {
     const response = await api.get('/api/v1/dids');
+    return response.data;
+};
+
+/**
+ * Register DID on blockchain
+ */
+export const registerDID = async (did: string) => {
+    const response = await api.post(`/api/v1/did/${did}/register`);
+    return response.data;
+};
+
+/**
+ * Update DID with new face embedding
+ */
+export const updateDID = async (did: string, newFaceIPFSHash: string) => {
+    const response = await api.post(`/api/v1/did/${did}/update`, {
+        new_face_ipfs_hash: newFaceIPFSHash,
+    });
+    return response.data;
+};
+
+/**
+ * Verify DID integrity
+ */
+export const verifyDID = async (did: string) => {
+    const response = await api.post(`/api/v1/did/${did}/verify`);
+    return response.data;
+};
+
+/**
+ * Revoke DID
+ */
+export const revokeDID = async (did: string) => {
+    const response = await api.post(`/api/v1/did/${did}/revoke`);
     return response.data;
 };
 

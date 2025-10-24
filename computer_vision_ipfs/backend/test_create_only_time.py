@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import sys
 import time
-sys.path.insert(0, '.')
+
+sys.path.insert(0, ".")
 
 from app.blockchain.cardano_client import CardanoClient
 from app.blockchain.did_manager import DIDManager
@@ -9,7 +10,7 @@ from app.blockchain.did_manager import DIDManager
 print("TEST: CREATE only\n")
 
 cardano = CardanoClient()
-cardano.load_wallet('me_preprod.sk')
+cardano.load_wallet("me_preprod.sk")
 did_mgr = DIDManager(cardano_client=cardano)
 
 did_id = f"test-{int(time.time())}"

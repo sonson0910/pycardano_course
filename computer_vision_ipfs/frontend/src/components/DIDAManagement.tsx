@@ -24,6 +24,13 @@ interface FormData {
   action: 'create' | 'register' | 'update' | 'verify' | 'revoke';
 }
 
+interface VerifyResult {
+  verified: boolean;
+  confidence: number;
+  message: string;
+  txHash?: string;
+}
+
 export const DIDAManagement: React.FC<{
   preFilledDID?: {
     did: string;
@@ -40,6 +47,8 @@ export const DIDAManagement: React.FC<{
   const [selectedDID, setSelectedDID] = useState<DID | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [verifyResult, setVerifyResult] = useState<VerifyResult | null>(null);
+  const [verifyLoading, setVerifyLoading] = useState(false);
 
   const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api/v1';
 
@@ -51,6 +60,25 @@ export const DIDAManagement: React.FC<{
         faceEmbedding: preFilledDID.ipfs_hash,
         action: 'create',
       });
+      // ✅ Auto-select the newly created DID
+      const newDID: DID = {
+        id: preFilledDID.did,
+        did: preFilledDID.did,
+        status: 'created',
+        faceHash: preFilledDID.ipfs_hash,
+        createdAt: new Date().toISOString(),
+        lastUpdated: new Date().toISOString(),
+        txHistory: [{
+          action: 'create',
+          txHash: '', // Will be updated after registration
+          timestamp: new Date().toISOString(),
+          confirmed: false,
+        }],
+      };
+      setSelectedDID(newDID);
+
+      // ✅ Tự động fetch DID list để cập nhật
+      setTimeout(fetchDIDs, 1000);
     }
   }, [preFilledDID]);
 
@@ -72,7 +100,20 @@ export const DIDAManagement: React.FC<{
       const response = await fetch(`${API_BASE}/did/${did}/status`);
       if (!response.ok) throw new Error('Failed to fetch DID status');
       const data = await response.json();
-      setSelectedDID(data.data);
+      
+      // Convert API response to DID format
+      const didData = data.data;
+      const selectedDIDData: DID = {
+        id: did,
+        did: did,
+        status: didData.status || 'created',
+        faceHash: didData.face_hash || '',
+        createdAt: didData.created_at || new Date().toISOString(),
+        lastUpdated: new Date().toISOString(),
+        txHistory: [] // TODO: Add tx history from API
+      };
+      
+      setSelectedDID(selectedDIDData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch DID status');
     }
@@ -88,6 +129,10 @@ export const DIDAManagement: React.FC<{
     setLoading(true);
     setError(null);
     try {
+      // Create abort controller with 120 second timeout (backend waits up to 60s)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
+
       const response = await fetch(`${API_BASE}/did/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -95,7 +140,10 @@ export const DIDAManagement: React.FC<{
           did_id: formData.didId,
           face_embedding: formData.faceEmbedding,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error('Failed to create DID');
       const data = await response.json();
@@ -103,7 +151,11 @@ export const DIDAManagement: React.FC<{
       setFormData({ didId: '', faceEmbedding: '', action: 'create' });
       setTimeout(fetchDIDs, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create DID');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Request timeout - please try again');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to create DID');
+      }
     } finally {
       setLoading(false);
     }
@@ -114,17 +166,27 @@ export const DIDAManagement: React.FC<{
     setLoading(true);
     setError(null);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
+
       const response = await fetch(`${API_BASE}/did/${did}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error('Failed to register DID');
       const data = await response.json();
       setSuccess(`DID registered! TX: ${data.tx_hash}`);
       setTimeout(() => fetchDIDStatus(did), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to register DID');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Request timeout - please try again');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to register DID');
+      }
     } finally {
       setLoading(false);
     }
@@ -140,20 +202,30 @@ export const DIDAManagement: React.FC<{
     setLoading(true);
     setError(null);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
+
       const response = await fetch(`${API_BASE}/did/${did}/update`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           new_face_embedding: formData.faceEmbedding,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error('Failed to update DID');
       const data = await response.json();
       setSuccess(`DID updated! TX: ${data.tx_hash}`);
       setTimeout(() => fetchDIDStatus(did), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update DID');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Request timeout - please try again');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to update DID');
+      }
     } finally {
       setLoading(false);
     }
@@ -164,17 +236,38 @@ export const DIDAManagement: React.FC<{
     setLoading(true);
     setError(null);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
+
       const response = await fetch(`${API_BASE}/did/${did}/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error('Failed to verify DID');
       const data = await response.json();
+
+      // Set verify result with confidence
+      setVerifyResult({
+        verified: data.verified || false,
+        confidence: data.confidence || 0,
+        message: data.verified ?
+          `✅ Xác thực thành công! ${((data.confidence || 0) * 100).toFixed(2)}% giống` :
+          `❌ Xác thực thất bại`,
+        txHash: data.tx_hash,
+      });
+
       setSuccess(data.verified ? 'DID verified successfully!' : 'DID verification failed');
       setTimeout(() => fetchDIDStatus(did), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to verify DID');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Request timeout - please try again');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to verify DID');
+      }
     } finally {
       setLoading(false);
     }
@@ -189,17 +282,27 @@ export const DIDAManagement: React.FC<{
     setLoading(true);
     setError(null);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
+
       const response = await fetch(`${API_BASE}/did/${did}/revoke`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error('Failed to revoke DID');
       const data = await response.json();
       setSuccess(`DID revoked! TX: ${data.tx_hash}`);
       setTimeout(() => fetchDIDStatus(did), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to revoke DID');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Request timeout - please try again');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to revoke DID');
+      }
     } finally {
       setLoading(false);
     }
@@ -208,6 +311,18 @@ export const DIDAManagement: React.FC<{
   useEffect(() => {
     fetchDIDs();
   }, []);
+
+  // Get status color emoji
+  const getStatusEmoji = (status: string) => {
+    switch (status) {
+      case 'created': return '🟡'; // Yellow
+      case 'registered': return '🟠'; // Orange
+      case 'updated': return '🔵'; // Blue
+      case 'verified': return '🟢'; // Green
+      case 'revoked': return '⛔'; // Red
+      default: return '⚪'; // Gray
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -221,7 +336,34 @@ export const DIDAManagement: React.FC<{
   };
 
   const getStatusLabel = (status: string) => {
+    if (!status || typeof status !== 'string') {
+      return 'Unknown';
+    }
     return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
+  // Render step progress
+  const renderStepProgress = (status: string) => {
+    const steps = [
+      { name: 'Created', status: 'created', emoji: '✅' },
+      { name: 'Registered', status: 'registered', emoji: '📝' },
+      { name: 'Updated', status: 'updated', emoji: '🔄' },
+      { name: 'Verified', status: 'verified', emoji: '✔️' },
+    ];
+
+    const currentIndex = steps.findIndex(s => s.status === status);
+
+    return (
+      <div className="step-progress">
+        {steps.map((step, idx) => (
+          <div key={step.status} className={`step ${idx <= currentIndex ? 'completed' : ''}`}>
+            <div className="step-marker">{idx <= currentIndex ? step.emoji : '○'}</div>
+            <div className="step-label">{step.name}</div>
+            {idx < steps.length - 1 && <div className={`step-connector ${idx < currentIndex ? 'completed' : ''}`} />}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -296,10 +438,10 @@ export const DIDAManagement: React.FC<{
                   <div className="did-header-info">
                     <span className="did-name">{did.did}</span>
                     <span className={`did-status did-status-${getStatusColor(did.status)}`}>
-                      {getStatusLabel(did.status)}
+                      {getStatusEmoji(did.status)} {getStatusLabel(did.status)}
                     </span>
                   </div>
-                  <p className="did-hash">{did.faceHash.substring(0, 40)}...</p>
+                  <p className="did-hash">{did.faceHash ? did.faceHash.substring(0, 40) + '...' : 'No hash'}</p>
                   <p className="did-timestamp">Created: {new Date(did.createdAt).toLocaleString()}</p>
                 </div>
               ))
@@ -311,23 +453,30 @@ export const DIDAManagement: React.FC<{
       {/* Selected DID Actions */}
       {selectedDID && (
         <section className="card actions-section">
-          <h2>DID Actions: {selectedDID.did}</h2>
+          <h2>🆔 Quản Lý DID: {selectedDID.did}</h2>
+
+          {/* Step Progress */}
+          {renderStepProgress(selectedDID.status)}
 
           <div className="status-info">
             <p>
-              <strong>Status:</strong>{' '}
+              <strong>Trạng thái:</strong>{' '}
               <span className={`status-value status-${getStatusColor(selectedDID.status)}`}>
-                {getStatusLabel(selectedDID.status)}
+                {getStatusEmoji(selectedDID.status)} {getStatusLabel(selectedDID.status)}
               </span>
             </p>
             <p>
-              <strong>Created:</strong> {new Date(selectedDID.createdAt).toLocaleString()}
+              <strong>📅 Ngày tạo:</strong> {new Date(selectedDID.createdAt).toLocaleString()}
             </p>
             <p>
-              <strong>Last Updated:</strong> {new Date(selectedDID.lastUpdated).toLocaleString()}
+              <strong>⏰ Cập nhật lần cuối:</strong> {new Date(selectedDID.lastUpdated).toLocaleString()}
+            </p>
+            <p>
+              <strong>🔗 IPFS:</strong> <code>{selectedDID.faceHash}</code>
             </p>
           </div>
 
+          {/* Action Buttons */}
           <div className="actions-grid">
             {selectedDID.status === 'created' && (
               <button
@@ -335,7 +484,7 @@ export const DIDAManagement: React.FC<{
                 onClick={() => registerDID(selectedDID.did)}
                 disabled={loading}
               >
-                {loading ? 'Registering...' : 'Register'}
+                {loading ? '⏳ Đang xử lý...' : '📝 Register'}
               </button>
             )}
 
@@ -343,35 +492,83 @@ export const DIDAManagement: React.FC<{
               <>
                 <button
                   className="btn btn-update"
-                  onClick={() => updateDID(selectedDID.did)}
-                  disabled={loading || !formData.faceEmbedding}
+                  onClick={() => selectedDID && updateDID(selectedDID.did)}
+                  disabled={loading || !formData.faceEmbedding || !selectedDID}
                 >
-                  {loading ? 'Updating...' : 'Update Face Hash'}
-                </button>
-                <button
-                  className="btn btn-verify"
-                  onClick={() => verifyDID(selectedDID.did)}
-                  disabled={loading}
-                >
-                  {loading ? 'Verifying...' : 'Verify'}
+                  {loading ? '⏳ Đang xử lý...' : '🔄 Cập Nhật Ảnh'}
                 </button>
               </>
+            )}
+
+            {(selectedDID.status === 'updated' || selectedDID.status === 'registered') && (
+              <button
+                className="btn btn-verify"
+                onClick={() => selectedDID && verifyDID(selectedDID.did)}
+                disabled={verifyLoading || !selectedDID}
+              >
+                {verifyLoading ? '⏳ Đang xác thực...' : '✅ Xác Thực'}
+              </button>
             )}
 
             {selectedDID.status !== 'revoked' && (
               <button
                 className="btn btn-revoke"
-                onClick={() => revokeDID(selectedDID.did)}
-                disabled={loading}
+                onClick={() => selectedDID && revokeDID(selectedDID.did)}
+                disabled={loading || !selectedDID}
               >
-                {loading ? 'Revoking...' : 'Revoke'}
+                {loading ? '⏳ Đang xử lý...' : '❌ Huỷ Bỏ (Không Thể Hoàn Tác!)'}
               </button>
+            )}
+
+            {selectedDID.status === 'verified' && (
+              <div className="verified-badge">
+                <span>🟢 ĐÃ XÁC THỰC</span>
+              </div>
+            )}
+
+            {selectedDID.status === 'revoked' && (
+              <div className="revoked-badge">
+                <span>⛔ ĐÃ HUỶBỎ</span>
+              </div>
             )}
           </div>
 
+          {/* Verify Result Display */}
+          {verifyResult && (
+            <div className={`verify-result ${verifyResult.verified ? 'success' : 'error'}`}>
+              <div className="verify-header">
+                <span className="verify-status">
+                  {verifyResult.verified ? '🟢' : '🔴'} {verifyResult.message}
+                </span>
+              </div>
+              {verifyResult.verified && (
+                <>
+                  <div className="confidence-display">
+                    <p>🎯 Mức độ giống nhau:</p>
+                    <div className="confidence-bar">
+                      {/* Dynamic width percentage - cannot be moved to CSS file */}
+                      {/* eslint-disable-next-line react/style-prop-object */}
+                      <div
+                        className="confidence-fill"
+                        style={{width: `${(verifyResult.confidence * 100).toFixed(2)}%`}}
+                      >
+                        {(verifyResult.confidence * 100).toFixed(2)}%
+                      </div>
+                    </div>
+                  </div>
+                  {verifyResult.txHash && (
+                    <p className="verify-tx">
+                      <strong>TX Hash:</strong> {verifyResult.txHash}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
           <div className="tx-history">
             <h3>Transaction History</h3>
-            {selectedDID.txHistory.length === 0 ? (
+            {!selectedDID || !selectedDID.txHistory || selectedDID.txHistory.length === 0 ? (
               <p>No transactions yet</p>
             ) : (
               <ul>

@@ -2,6 +2,7 @@
 Cleaned build_script_transaction implementation following Aiken PyCardano examples
 """
 
+
 def build_script_transaction_new(
     self,
     action,
@@ -16,11 +17,13 @@ def build_script_transaction_new(
     Following: https://aiken-lang.org/example--hello-world/end-to-end/pycardano
     """
     try:
-        logger.info(f"🔨 Building script transaction with {type(action).__name__} redeemer...")
+        logger.info(
+            f"🔨 Building script transaction with {type(action).__name__} redeemer..."
+        )
 
         # Validate
         self._validate_action(action, datum)
-        
+
         # Use wallet if not provided
         if sender_address is None:
             sender_address = str(self.wallet_address)
@@ -39,24 +42,18 @@ def build_script_transaction_new(
         # Build transaction using BlockFrostChainContext
         # This handles UTxO selection, fees, and TTL automatically
         builder = TransactionBuilder(self.context)
-        
+
         # Add inputs from wallet - context will select UTxOs automatically
         builder.add_input_address(sender_address)
-        
+
         # Add minimum change output (context will calculate exact change)
-        builder.add_output(
-            TransactionOutput(
-                address=sender,
-                amount=Value(2_000_000)
-            )
-        )
-        
+        builder.add_output(TransactionOutput(address=sender, amount=Value(2_000_000)))
+
         # Build and sign
         tx_raw = builder.build_and_sign(
-            signing_keys=[signing_key],
-            change_address=sender
+            signing_keys=[signing_key], change_address=sender
         )
-        
+
         # Get TX hash
         tx_cbor = tx_raw.to_cbor()
         tx_hash = hashlib.blake2b(tx_cbor, digest_size=32).hex()
@@ -83,7 +80,7 @@ def build_script_transaction_new(
         logger.info(f"   - Action: {type(action).__name__}")
         logger.info(f"   - DID: {datum.did_id.hex()[:8]}...")
         logger.info(f"   - TX Hash: {tx_hash[:16]}...")
-        
+
         return tx_dict
 
     except Exception as e:

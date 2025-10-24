@@ -1,6 +1,6 @@
 """API routes for face tracking and blockchain integration"""
 
-from fastapi import APIRouter, File, UploadFile, HTTPException
+from fastapi import APIRouter, File, UploadFile, HTTPException, Request
 from fastapi.responses import JSONResponse
 from typing import List, Optional
 import cv2
@@ -13,7 +13,7 @@ from ..blockchain.cardano_client import Register, Update, Verify, Revoke
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1", tags=["face-tracking"])
+router = APIRouter(tags=["face-tracking"])
 
 # Initialize components (will be created on first use)
 face_tracker: Optional[FaceTracker] = None
@@ -73,11 +73,35 @@ async def detect_faces(file: UploadFile = File(...)):
     try:
         logger.info("📸 Detecting faces...")
         contents = await file.read()
+        logger.info(f"   📁 File size: {len(contents)} bytes")
+        logger.info(f"   📄 File type: {file.content_type}")
+
+        # Validate file size
+        if len(contents) == 0:
+            raise HTTPException(status_code=400, detail="Empty file")
+
+        if len(contents) > 10 * 1024 * 1024:  # 10MB limit
+            raise HTTPException(status_code=400, detail="File too large (max 10MB)")
+
+        # Validate content type
+        if file.content_type not in [
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/webp",
+        ]:
+            raise HTTPException(
+                status_code=400, detail=f"Unsupported image format: {file.content_type}"
+            )
+
         nparr = np.frombuffer(contents, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
         if frame is None:
-            raise HTTPException(status_code=400, detail="Invalid image")
+            logger.error("❌ OpenCV failed to decode image")
+            raise HTTPException(status_code=400, detail="Invalid image format")
+
+        logger.info(f"   📐 Image shape: {frame.shape}")
 
         # Detect faces
         faces = get_face_tracker().track_faces(frame)
@@ -90,11 +114,30 @@ async def detect_faces(file: UploadFile = File(...)):
         if len(faces) > 0:
             # Get face embedding (512-dim vector)
             first_face = faces[0]
-            embedding_data = str(first_face.__dict__)  # Serialize face data
+
+            # Create compact embedding data
+            embedding_data = {
+                "face_id": first_face.face_id,
+                "bbox": first_face.bbox,
+                "confidence": first_face.confidence,
+                "embedding": (
+                    first_face.embedding.tolist()
+                    if first_face.embedding is not None
+                    else []
+                ),
+                "landmarks": first_face.landmarks,
+            }
+
+            # Convert to JSON string
+            import json
+
+            embedding_json = json.dumps(embedding_data)
 
             # Upload embedding to IPFS
             logger.info("   📤 Uploading embedding to IPFS...")
-            embedding_ipfs_hash = get_ipfs_client().add_file(embedding_data)
+            embedding_ipfs_hash = get_ipfs_client().add_file_bytes(
+                embedding_json.encode("utf-8"), "face_embedding.json"
+            )
             logger.info(f"   ✅ Embedding IPFS: {embedding_ipfs_hash}")
 
             # Also upload original image to IPFS (optional)
@@ -413,7 +456,7 @@ async def create_did(
             "did": custom_did_id,
             "ipfs_hash": ipfs_hash,
             "tx_hash": tx_hash,
-            "message": f"DID created and locked to script. Wait 30 seconds for confirmation.",
+            "message": f"✅ DID created! Transaction confirmed on blockchain.",
         }
     except Exception as e:
         logger.error(f"Error creating DID: {e}")
@@ -442,12 +485,19 @@ async def register_did(did: str):
 
 
 @router.post("/did/{did}/update")
-async def update_did(did: str, new_face_embedding: str):
+async def update_did(did: str, request: Request):
     """
     Update DID - Execute Update redeemer
     Updates face embedding or metadata
     """
     try:
+        body = await request.json()
+        new_face_embedding = body.get("new_face_embedding")
+        if not new_face_embedding:
+            raise HTTPException(
+                status_code=400, detail="new_face_embedding is required"
+            )
+
         tx_hash = get_did_manager().update_did(did, new_face_embedding)
 
         return {

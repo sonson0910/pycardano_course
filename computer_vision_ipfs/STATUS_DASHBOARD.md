@@ -296,7 +296,7 @@ New Documentation Files:
 ═══════════════════════════════════════════════════════════════════════════════
 
 Architecture:
-Frontend (React 18) → API Routes (FastAPI) → Backend Services (DIDManager, 
+Frontend (React 18) → API Routes (FastAPI) → Backend Services (DIDManager,
 CardanoClient) → Blockfrost API → Cardano Blockchain → Smart Contracts (Aiken)
 
 Tech Stack:

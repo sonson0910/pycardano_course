@@ -62,24 +62,24 @@ AttributeError: 'DIDManager' object has no attribute 'revoke_did'
 def create_did(self, did_id: str, face_ipfs_hash: str) -> str:
     """Create new DID and lock to script"""
     logger.info(f"Creating DID: {did_id}")
-    
+
     # Validate inputs
     datum = self.create_did_datum(did_id, face_ipfs_hash)
     self.validate_register_datum(datum)
-    
+
     # Build transaction with Register redeemer
     tx = self.cardano_client.build_script_transaction(
         action="Register",
         datum=datum
     )
-    
+
     # Store locally
     self.dids[did_id] = {
         "status": "created",
         "ipfs_hash": face_ipfs_hash,
         "tx_hash": tx["tx_hash"]
     }
-    
+
     return tx["tx_hash"]  # ✅ Returns proper TX hash
 ```
 
@@ -88,20 +88,20 @@ def create_did(self, did_id: str, face_ipfs_hash: str) -> str:
 def register_did(self, did_id: str) -> str:
     """Register DID with Register action"""
     logger.info(f"Registering DID: {did_id}")
-    
+
     # Lookup and validate
     did = self.get_did_document(did_id)
     self.validate_register_datum(did)
-    
+
     # Build transaction
     tx = self.cardano_client.build_script_transaction(
         action="Register",
         datum=did
     )
-    
+
     # Update status
     self.dids[did_id]["status"] = "registered"
-    
+
     return tx["tx_hash"]  # ✅ Returns proper TX hash
 ```
 
@@ -110,24 +110,24 @@ def register_did(self, did_id: str) -> str:
 def update_did(self, did_id: str, new_face_ipfs_hash: str) -> str:
     """Update DID with new face embedding"""
     logger.info(f"Updating DID: {did_id}")
-    
+
     # Get existing DID
     existing = self.get_did_document(did_id)
-    
+
     # Create new datum with updated hash
     new_datum = self.create_did_datum(did_id, new_face_ipfs_hash)
     self.validate_update_datum(new_datum)
-    
+
     # Build transaction
     tx = self.cardano_client.build_script_transaction(
         action="Update",
         datum=new_datum
     )
-    
+
     # Update status
     self.dids[did_id]["ipfs_hash"] = new_face_ipfs_hash
     self.dids[did_id]["verified"] = False
-    
+
     return tx["tx_hash"]  # ✅ Returns proper TX hash
 ```
 
@@ -136,20 +136,20 @@ def update_did(self, did_id: str, new_face_ipfs_hash: str) -> str:
 def verify_did(self, did_id: str) -> str:
     """Verify DID integrity"""
     logger.info(f"Verifying DID: {did_id}")
-    
+
     # Get and validate
     datum = self.get_did_document(did_id)
     self.validate_verify_datum(datum)
-    
+
     # Build transaction
     tx = self.cardano_client.build_script_transaction(
         action="Verify",
         datum=datum
     )
-    
+
     # Update status
     self.dids[did_id]["verified"] = True
-    
+
     return tx["tx_hash"]  # ✅ Returns proper TX hash
 ```
 
@@ -158,20 +158,20 @@ def verify_did(self, did_id: str) -> str:
 def revoke_did(self, did_id: str) -> str:
     """Permanently revoke DID"""
     logger.info(f"Revoking DID: {did_id}")
-    
+
     # Get and validate
     datum = self.get_did_document(did_id)
     self.validate_revoke_datum(datum)
-    
+
     # Build transaction
     tx = self.cardano_client.build_script_transaction(
         action="Revoke",
         datum=datum
     )
-    
+
     # Update status
     self.dids[did_id]["status"] = "revoked"
-    
+
     return tx["tx_hash"]  # ✅ Returns proper TX hash
 ```
 
@@ -179,17 +179,17 @@ def revoke_did(self, did_id: str) -> str:
 ```python
 def build_script_transaction(self, action: str, datum: dict, sender_address=None) -> dict:
     """Build transaction with smart contract redeemer"""
-    
+
     logger.info(f"Building {action} transaction")
-    
+
     # Validate inputs
     if action not in ["Register", "Update", "Verify", "Revoke"]:
         raise ValueError(f"Invalid action: {action}")
-    
+
     # Load compiled validators
     with open("smart_contracts/plutus.json") as f:
         plutus = json.load(f)
-    
+
     # Create transaction structure
     tx = {
         "type": "TxBodyComponentScript",
@@ -204,9 +204,9 @@ def build_script_transaction(self, action: str, datum: dict, sender_address=None
             "data": self._serialize_action_to_redeemer(action)
         }
     }
-    
+
     logger.info(f"Transaction built successfully")
-    
+
     return {
         "tx_hash": self._hash_transaction(tx),
         "datum": datum,
@@ -219,23 +219,23 @@ def build_script_transaction(self, action: str, datum: dict, sender_address=None
 ```python
 def query_script_utxo(self, did_id: str):
     """Query UTxOs at script address"""
-    
+
     logger.info(f"Querying UTxOs for DID: {did_id}")
-    
+
     # Derive script address
     script_address = Address(
         hash=ScriptHash.from_hex(self.SCRIPT_HASH),
         network=Network.TESTNET
     ).encode()
-    
+
     # Query Blockfrost
     utxos = self.blockfrost.address_utxos(script_address)
-    
+
     # Find matching UTxO
     for utxo in utxos:
         if self._is_did_utxo(utxo, did_id):
             return utxo
-    
+
     return None  # ✅ Returns proper UTxO or None
 ```
 

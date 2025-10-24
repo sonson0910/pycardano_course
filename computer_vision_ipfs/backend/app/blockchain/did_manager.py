@@ -5,7 +5,7 @@ Manages creation and verification of DIDs linked to face data
 
 import json
 import uuid
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Any
 from datetime import datetime
 import logging
 import hashlib
@@ -384,14 +384,31 @@ class DIDManager:
         try:
             logger.info(f"📝 Creating DID: {did_id[:20]}...")
 
-            # 1. Create DIDDatum
-            owner_address = str(self.cardano.wallet_address)
+            # 1. Ensure wallet is loaded
+            if not self.cardano.wallet_address:
+                try:
+                    self.cardano.load_wallet("me_preprod.sk")
+                    logger.info(f"   🔑 Wallet loaded successfully")
+                except Exception as e:
+                    logger.warning(f"   ⚠️ Could not load wallet: {e}")
+
+            # 2. Get owner address from wallet
+            if self.cardano.wallet_address:
+                owner_address = str(self.cardano.wallet_address)
+                logger.info(f"   📍 Using wallet address: {owner_address}")
+            else:
+                # Fallback to default testnet address
+                owner_address = (
+                    "addr_test1vpx302mqdefht0wly42wlpjmd2rm7xr85j6sgvej8pywusc38sglh"
+                )
+                logger.info(f"   📍 Using default address: {owner_address}")
+
             datum = self.create_did_datum(face_ipfs_hash, owner_address)
 
-            # 2. Validate datum
+            # 3. Validate datum
             self.validate_register_datum(datum)
 
-            # 3. Build transaction to lock DID to script
+            # 4. Build transaction to lock DID to script
             from .cardano_client import Create
 
             action = Create()
@@ -399,7 +416,7 @@ class DIDManager:
                 action=action, datum=datum, sender_address=owner_address
             )
 
-            # 4. SUBMIT transaction to blockchain
+            # 5. SUBMIT transaction to blockchain
             submitted_tx_hash = self.cardano.submit_transaction(tx)
 
             # Store locally
@@ -438,11 +455,25 @@ class DIDManager:
             # Validate Register action
             self.validate_register_datum(datum)
 
+            # Ensure wallet is loaded
+            if not self.cardano.wallet_address:
+                try:
+                    self.cardano.load_wallet("me_preprod.sk")
+                except Exception as e:
+                    logger.warning(f"   ⚠️ Could not load wallet: {e}")
+
+            # Get owner address from wallet
+            if self.cardano.wallet_address:
+                owner_address = str(self.cardano.wallet_address)
+            else:
+                owner_address = (
+                    "addr_test1vpx302mqdefht0wly42wlpjmd2rm7xr85j6sgvej8pywusc38sglh"
+                )
+
             # Build Register transaction
             from .cardano_client import Register
 
             action = Register()
-            owner_address = str(self.cardano.wallet_address)
 
             tx = self.cardano.build_script_transaction(
                 action=action,
@@ -494,11 +525,25 @@ class DIDManager:
             # Validate Update action
             self.validate_update_datum(new_datum)
 
+            # Ensure wallet is loaded
+            if not self.cardano.wallet_address:
+                try:
+                    self.cardano.load_wallet("me_preprod.sk")
+                except Exception as e:
+                    logger.warning(f"   ⚠️ Could not load wallet: {e}")
+
+            # Get owner address from wallet
+            if self.cardano.wallet_address:
+                owner_address = str(self.cardano.wallet_address)
+            else:
+                owner_address = (
+                    "addr_test1vpx302mqdefht0wly42wlpjmd2rm7xr85j6sgvej8pywusc38sglh"
+                )
+
             # Build Update transaction
             from .cardano_client import Update
 
             action = Update()
-            owner_address = str(self.cardano.wallet_address)
 
             tx = self.cardano.build_script_transaction(
                 action=action,
@@ -543,11 +588,25 @@ class DIDManager:
             # Validate Verify action
             self.validate_verify_datum(datum)
 
+            # Ensure wallet is loaded
+            if not self.cardano.wallet_address:
+                try:
+                    self.cardano.load_wallet("me_preprod.sk")
+                except Exception as e:
+                    logger.warning(f"   ⚠️ Could not load wallet: {e}")
+
+            # Get owner address from wallet
+            if self.cardano.wallet_address:
+                owner_address = str(self.cardano.wallet_address)
+            else:
+                owner_address = (
+                    "addr_test1vpx302mqdefht0wly42wlpjmd2rm7xr85j6sgvej8pywusc38sglh"
+                )
+
             # Build Verify transaction
             from .cardano_client import Verify
 
             action = Verify()
-            owner_address = str(self.cardano.wallet_address)
 
             tx = self.cardano.build_script_transaction(
                 action=action,
@@ -591,11 +650,25 @@ class DIDManager:
             # Validate Revoke action
             self.validate_revoke_datum(datum)
 
+            # Ensure wallet is loaded
+            if not self.cardano.wallet_address:
+                try:
+                    self.cardano.load_wallet("me_preprod.sk")
+                except Exception as e:
+                    logger.warning(f"   ⚠️ Could not load wallet: {e}")
+
+            # Get owner address from wallet
+            if self.cardano.wallet_address:
+                owner_address = str(self.cardano.wallet_address)
+            else:
+                owner_address = (
+                    "addr_test1vpx302mqdefht0wly42wlpjmd2rm7xr85j6sgvej8pywusc38sglh"
+                )
+
             # Build Revoke transaction
             from .cardano_client import Revoke
 
             action = Revoke()
-            owner_address = str(self.cardano.wallet_address)
 
             tx = self.cardano.build_script_transaction(
                 action=action,
@@ -615,4 +688,42 @@ class DIDManager:
 
         except Exception as e:
             logger.error(f"❌ Failed to revoke DID: {e}")
+            raise
+
+    def get_did_status(self, did_id: str) -> Dict[str, Any]:
+        """
+        Get DID status and information
+
+        Args:
+            did_id: DID identifier
+
+        Returns:
+            DID status information including TX hash, status, etc
+        """
+        try:
+            if did_id not in self.dids:
+                raise ValueError(f"DID not found: {did_id}")
+
+            did_data = self.dids[did_id]
+            datum = did_data.get("datum")
+
+            return {
+                "did_id": did_id,
+                "status": did_data.get("status", "created"),
+                "tx_hash": did_data.get("tx_hash"),
+                "on_chain": did_data.get("on_chain", False),
+                "verified": datum.verified if datum else False,
+                "created_at": did_data.get("created_at"),
+                "registered_at": did_data.get("registered_at"),
+                "updated_at": did_data.get("updated_at"),
+                "face_ipfs_hash": (
+                    datum.face_ipfs_hash.decode("utf-8", errors="ignore")
+                    if datum and datum.face_ipfs_hash
+                    else None
+                ),
+                "owner": datum.owner.hex() if datum and datum.owner else None,
+                "metadata": did_data.get("metadata", {}),
+            }
+        except Exception as e:
+            logger.error(f"❌ Failed to get DID status: {e}")
             raise

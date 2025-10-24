@@ -159,7 +159,7 @@ class FaceTracker:
                             keypoints[f"kp_{idx}"] = {
                                 "x": int(kp.x * w),
                                 "y": int(kp.y * h),
-                                "z": kp.z,
+                                "z": getattr(kp, "z", 0.0),  # z có thể không có
                             }
 
                         face = FaceData(
@@ -177,6 +177,11 @@ class FaceTracker:
 
         except Exception as e:
             logger.error(f"Error detecting faces: {e}")
+            logger.error(f"Error type: {type(e)}")
+            logger.error(f"Error details: {str(e)}")
+            import traceback
+
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return []
 
     def extract_landmarks(self, frame: np.ndarray) -> List[Dict]:

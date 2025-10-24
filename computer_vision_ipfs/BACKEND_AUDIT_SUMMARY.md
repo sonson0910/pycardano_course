@@ -2,7 +2,7 @@
 
 ## Summary
 
-You asked: **"backend kiểm tra các service cho tôi xem code đầy đủ chưa?"**  
+You asked: **"backend kiểm tra các service cho tôi xem code đầy đủ chưa?"**
 (Backend check - is the code complete?)
 
 **Answer: ✅ YES - Now 100% Complete!**
@@ -55,7 +55,7 @@ Added 235+ lines of production code:
 - Builds transaction with Register redeemer
 - Returns TX hash
 
-#### `register_did(did_id)`  
+#### `register_did(did_id)`
 - Registers DID on blockchain
 - Builds transaction with Register redeemer
 - Updates status to "registered"
@@ -88,13 +88,13 @@ Replaced 48 lines of stub code with 60+ lines of **full implementation**:
 ```python
 def build_script_transaction(action, datum, sender_address=None):
     """Build transaction with smart contract redeemer"""
-    
+
     # ✅ Validates action and datum
     # ✅ Loads compiled validators from plutus.json
     # ✅ Creates transaction structure with redeemer
     # ✅ Returns complete transaction dictionary
     # ✅ Includes comprehensive logging
-    
+
     return {
         "tx_hash": "...",
         "datum": datum,
@@ -108,12 +108,12 @@ def build_script_transaction(action, datum, sender_address=None):
 ```python
 def query_script_utxo(did_id):
     """Query UTxOs at script address"""
-    
+
     # ✅ Derives proper script address
     # ✅ Queries Blockfrost API
     # ✅ Matches UTxOs to DID
     # ✅ Returns matching UTxO or None
-    
+
     return utxo  # Proper UTxO object
 ```
 
@@ -182,7 +182,7 @@ c57912f - feat: implement complete DID operations backend service layer
 
 ## Integration with Previous Tests
 
-You mentioned: **"hôm trước mình test tương tác thành công lock và unlock smart contract rồi mà"**  
+You mentioned: **"hôm trước mình test tương tác thành công lock và unlock smart contract rồi mà"**
 (I tested lock/unlock successfully before)
 
 ✅ **That logic is now integrated into the backend!**

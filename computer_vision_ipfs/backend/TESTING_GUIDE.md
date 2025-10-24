@@ -4,7 +4,7 @@
 
 Tất cả services đã được **HOÀN THÀNH 100%** mà **KHÔNG CÓ PLACEHOLDER hay MOCK**:
 - ✅ `create_did()` - Tạo DID thực
-- ✅ `register_did()` - Register thực  
+- ✅ `register_did()` - Register thực
 - ✅ `update_did()` - Update thực
 - ✅ `verify_did()` - Verify thực
 - ✅ `revoke_did()` - Revoke thực

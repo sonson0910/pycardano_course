@@ -3,13 +3,23 @@ import { detectFaces, createDID } from '../api';
 import './FaceDetector.css';
 
 interface DetectionResult {
+  status: string;
   faces_detected: number;
   faces: Array<{
+    face_id?: string;
+    bbox?: any;
     confidence: number;
     embedding?: number[];
   }>;
   embedding_ipfs_hash?: string;
+  face_image_ipfs_hash?: string;
 }
+
+const logger = {
+  info: (msg: string) => console.log(`ℹ️ ${msg}`),
+  error: (msg: string) => console.error(`❌ ${msg}`),
+  warn: (msg: string) => console.warn(`⚠️ ${msg}`),
+};
 
 export const FaceDetector: React.FC<{
   onDIDCreated?: (didData: any) => void;
@@ -54,16 +64,33 @@ export const FaceDetector: React.FC<{
       setCreatingDID(true);
       setError(null);
 
+      // Tạo DID ID tự động từ timestamp + hash
+      const timestamp = new Date().getTime();
+      const didId = `did:cardano:${timestamp}:${result.embedding_ipfs_hash.substring(0, 8)}`;
+
+      logger.info(`🔗 Creating DID: ${didId}`);
+      logger.info(`📤 IPFS Hash: ${result.embedding_ipfs_hash}`);
+
       const didResponse = await createDID(result.embedding_ipfs_hash, {
-        face_image_ipfs: result.embedding_ipfs_hash,
+        did_id: didId,
+        face_image_ipfs: result.face_image_ipfs_hash || result.embedding_ipfs_hash,
       });
 
-      if (didResponse.did && didResponse.ipfs_hash) {
+      if (didResponse.did && didResponse.tx_hash) {
+        // ✅ Tự động chuyển sang tab DIDAManagement với DID vừa tạo
         onDIDCreated?.(didResponse);
-        alert(`✅ DID Created!\n\nDID: ${didResponse.did}\nIPFS: ${didResponse.ipfs_hash}\n\nTX: ${didResponse.tx_hash}`);
+
+        alert(
+          `✅ DID Created Successfully!\n\n` +
+          `DID: ${didResponse.did}\n` +
+          `Face Hash: ${result.embedding_ipfs_hash}\n` +
+          `TX Hash: ${didResponse.tx_hash}\n\n` +
+          `➡️  Switch to "Manage DIDs" tab to register/update/verify`
+        );
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'DID creation failed');
+      logger.error(`❌ DID creation error: ${err}`);
     } finally {
       setCreatingDID(false);
     }
