@@ -272,9 +272,15 @@ export const DIDAManagement: React.FC<{
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 120000);
 
+      // Send face_embedding if available, otherwise verify stored hash
+      const body = formData.faceEmbedding ?
+        { face_embedding: formData.faceEmbedding } :
+        {};
+
       const response = await fetch(`${API_BASE}/did/${did}/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: Object.keys(body).length > 0 ? JSON.stringify(body) : undefined,
         signal: controller.signal,
       });
 

@@ -201,3 +201,90 @@ chunk-VKLKESE7.js?v=7bd2a524:19413 Uncaught TypeError: Cannot read properties of
   🟢 ✅ Xác thực thành công! 0.00% giống
 🎯 Mức độ giống nhau:
 
+:     127.0.0.1:47262 - "POST /api/v1/did/did%3Acardano%3A1761296965195%3AQmQkBcYL/update HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47262 - "GET /api/v1/did/did%3Acardano%3A1761296965195%3AQmQkBcYL/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48616 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58040 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58044 - "OPTIONS /api/v1/did/did%3Acardano%3A1761296965195%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58044 - "POST /api/v1/did/did%3Acardano%3A1761296965195%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58044 - "GET /api/v1/did/did%3Acardano%3A1761296965195%3AQmQkBcYL/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58044 - "POST /api/v1/did/did%3Acardano%3A1761296965195%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58044 - "POST /api/v1/did/did%3Acardano%3A1761296965195%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58044 - "GET /api/v1/did/did%3Acardano%3A1761296965195%3AQmQkBcYL/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58044 - "GET /api/v1/did/did%3Acardano%3A1761296965195%3AQmQkBcYL/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58044 - "POST /api/v1/did/did%3Acardano%3A1761296965195%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58044 - "POST /api/v1/did/did%3Acardano%3A1761296965195%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58044 - "GET /api/v1/did/did%3Acardano%3A1761296965195%3AQmQkBcYL/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58044 - "GET /api/v1/did/did%3Acardano%3A1761296965195%3AQmQkBcYL/status HTTP/1.1" 200 OK
+
+
+
+2025-10-24 18:32:19,218 - app.api.routes - INFO - 📸 Detecting faces...
+2025-10-24 18:32:19,218 - app.api.routes - INFO -    📁 File size: 245966 bytes
+2025-10-24 18:32:19,218 - app.api.routes - INFO -    📄 File type: image/jpeg
+2025-10-24 18:32:19,228 - app.api.routes - INFO -    📐 Image shape: (1437, 2048, 3)
+2025-10-24 18:32:19,241 - app.api.routes - INFO -    ✅ Detected 1 face(s)
+2025-10-24 18:32:19,242 - app.api.routes - INFO -    📤 Uploading embedding to IPFS...
+2025-10-24 18:32:19,248 - app.ipfs.ipfs_client - INFO - Bytes uploaded to IPFS: Qmea3N42tTWczHwXwfthKRxqw1cDR5ay8oC4SVab87xbHq
+2025-10-24 18:32:19,248 - app.api.routes - INFO -    ✅ Embedding IPFS: Qmea3N42tTWczHwXwfthKRxqw1cDR5ay8oC4SVab87xbHq
+2025-10-24 18:32:19,248 - app.api.routes - INFO -    📤 Uploading image to IPFS...
+2025-10-24 18:32:19,258 - app.ipfs.ipfs_client - INFO - Bytes uploaded to IPFS: Qmc9LQAzABNrzhxR1N72kXqEeYpMNm2c6DxNpnqHY4tbwj
+2025-10-24 18:32:19,258 - app.api.routes - INFO -    ✅ Image IPFS: Qmc9LQAzABNrzhxR1N72kXqEeYpMNm2c6DxNpnqHY4tbwj
+INFO:     127.0.0.1:55132 - "POST /api/v1/detect-faces HTTP/1.1" 200 OK
+2025-10-24 18:32:20,388 - app.blockchain.did_manager - INFO - 📊 Comparing embeddings: QmPLaHxdymvY... vs Qmea3N42tTWc...
+2025-10-24 18:32:20,393 - app.ipfs.ipfs_client - ERROR - Error retrieving from IPFS: Failed to retrieve from IPFS: 404
+2025-10-24 18:32:20,394 - app.blockchain.did_manager - ERROR - ❌ Error comparing embeddings: Failed to retrieve from IPFS: 404
+INFO:     127.0.0.1:55132 - "POST /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55132 - "GET /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/status HTTP/1.1" 200 OK
+2025-10-24 18:32:25,613 - app.api.routes - INFO - 📸 Detecting faces...
+2025-10-24 18:32:25,613 - app.api.routes - INFO -    📁 File size: 506651 bytes
+2025-10-24 18:32:25,613 - app.api.routes - INFO -    📄 File type: image/jpeg
+2025-10-24 18:32:25,640 - app.api.routes - INFO -    📐 Image shape: (2559, 1723, 3)
+2025-10-24 18:32:25,650 - app.api.routes - INFO -    ✅ Detected 1 face(s)
+2025-10-24 18:32:25,650 - app.api.routes - INFO -    📤 Uploading embedding to IPFS...
+2025-10-24 18:32:25,658 - app.ipfs.ipfs_client - INFO - Bytes uploaded to IPFS: QmX5EK436Q8VSNj7CtZskiRRH6wDgF9hY5h7JFLg8DgShJ
+2025-10-24 18:32:25,659 - app.api.routes - INFO -    ✅ Embedding IPFS: QmX5EK436Q8VSNj7CtZskiRRH6wDgF9hY5h7JFLg8DgShJ
+2025-10-24 18:32:25,659 - app.api.routes - INFO -    📤 Uploading image to IPFS...
+2025-10-24 18:32:25,674 - app.ipfs.ipfs_client - INFO - Bytes uploaded to IPFS: QmY23FiwdwFBCmHsfCGNcvj4ovR3PvkXjsgpCbP6DJKyqX
+2025-10-24 18:32:25,674 - app.api.routes - INFO -    ✅ Image IPFS: QmY23FiwdwFBCmHsfCGNcvj4ovR3PvkXjsgpCbP6DJKyqX
+INFO:     127.0.0.1:55132 - "POST /api/v1/detect-faces HTTP/1.1" 200 OK
+2025-10-24 18:32:27,347 - app.blockchain.did_manager - INFO - 📊 Comparing embeddings: QmPLaHxdymvY... vs QmX5EK436Q8V...
+2025-10-24 18:32:27,348 - app.ipfs.ipfs_client - ERROR - Error retrieving from IPFS: Failed to retrieve from IPFS: 404
+2025-10-24 18:32:27,348 - app.blockchain.did_manager - ERROR - ❌ Error comparing embeddings: Failed to retrieve from IPFS: 404
+INFO:     127.0.0.1:55132 - "POST /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+2025-10-24 18:32:28,593 - app.blockchain.did_manager - INFO - 📊 Comparing embeddings: QmPLaHxdymvY... vs QmX5EK436Q8V...
+2025-10-24 18:32:28,595 - app.ipfs.ipfs_client - ERROR - Error retrieving from IPFS: Failed to retrieve from IPFS: 404
+2025-10-24 18:32:28,595 - app.blockchain.did_manager - ERROR - ❌ Error comparing embeddings: Failed to retrieve from IPFS: 404
+INFO:     127.0.0.1:55132 - "POST /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55132 - "GET /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55132 - "GET /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/status HTTP/1.1" 200 OK
+2025-10-24 18:32:35,593 - app.blockchain.did_manager - INFO - 📊 Comparing embeddings: QmPLaHxdymvY... vs QmX5EK436Q8V...
+2025-10-24 18:32:35,598 - app.ipfs.ipfs_client - ERROR - Error retrieving from IPFS: Failed to retrieve from IPFS: 404
+2025-10-24 18:32:35,598 - app.blockchain.did_manager - ERROR - ❌ Error comparing embeddings: Failed to retrieve from IPFS: 404
+INFO:     127.0.0.1:55132 - "POST /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+2025-10-24 18:32:36,132 - app.blockchain.did_manager - INFO - 📊 Comparing embeddings: QmPLaHxdymvY... vs QmX5EK436Q8V...
+2025-10-24 18:32:36,136 - app.ipfs.ipfs_client - ERROR - Error retrieving from IPFS: Failed to retrieve from IPFS: 404
+2025-10-24 18:32:36,137 - app.blockchain.did_manager - ERROR - ❌ Error comparing embeddings: Failed to retrieve from IPFS: 404
+INFO:     127.0.0.1:55132 - "POST /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+2025-10-24 18:32:36,358 - app.blockchain.did_manager - INFO - 📊 Comparing embeddings: QmPLaHxdymvY... vs QmX5EK436Q8V...
+2025-10-24 18:32:36,360 - app.ipfs.ipfs_client - ERROR - Error retrieving from IPFS: Failed to retrieve from IPFS: 404
+2025-10-24 18:32:36,360 - app.blockchain.did_manager - ERROR - ❌ Error comparing embeddings: Failed to retrieve from IPFS: 404
+INFO:     127.0.0.1:55132 - "POST /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+2025-10-24 18:32:36,587 - app.blockchain.did_manager - INFO - 📊 Comparing embeddings: QmPLaHxdymvY... vs QmX5EK436Q8V...
+2025-10-24 18:32:36,589 - app.ipfs.ipfs_client - ERROR - Error retrieving from IPFS: Failed to retrieve from IPFS: 404
+2025-10-24 18:32:36,589 - app.blockchain.did_manager - ERROR - ❌ Error comparing embeddings: Failed to retrieve from IPFS: 404
+INFO:     127.0.0.1:55132 - "POST /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+2025-10-24 18:32:36,809 - app.blockchain.did_manager - INFO - 📊 Comparing embeddings: QmPLaHxdymvY... vs QmX5EK436Q8V...
+2025-10-24 18:32:36,810 - app.ipfs.ipfs_client - ERROR - Error retrieving from IPFS: Failed to retrieve from IPFS: 404
+2025-10-24 18:32:36,810 - app.blockchain.did_manager - ERROR - ❌ Error comparing embeddings: Failed to retrieve from IPFS: 404
+INFO:     127.0.0.1:55132 - "POST /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+2025-10-24 18:32:37,046 - app.blockchain.did_manager - INFO - 📊 Comparing embeddings: QmPLaHxdymvY... vs QmX5EK436Q8V...
+2025-10-24 18:32:37,051 - app.ipfs.ipfs_client - ERROR - Error retrieving from IPFS: Failed to retrieve from IPFS: 404
+2025-10-24 18:32:37,051 - app.blockchain.did_manager - ERROR - ❌ Error comparing embeddings: Failed to retrieve from IPFS: 404
+INFO:     127.0.0.1:55132 - "POST /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/verify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55132 - "GET /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55132 - "GET /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55132 - "GET /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55132 - "GET /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55132 - "GET /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55132 - "GET /api/v1/did/did%3Acardano%3A1761305366242%3AQmQkBcYL/status HTTP/1.1" 200 OK
