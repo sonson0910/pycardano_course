@@ -1,0 +1,31 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment variables (sensitive)
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Aiken build artifacts (optional - giữ lại plutus.json nhưng bỏ cache)
+chapter3_lession1_helloworld/hello_world/build/packages/
+chapter3_cip68_implement/cip68_dynamic_asset/build/packages/
+
+# Node.js (frontend)
+node_modules/
+.next/
