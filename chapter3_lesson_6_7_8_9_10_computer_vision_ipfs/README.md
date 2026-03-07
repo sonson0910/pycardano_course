@@ -1,169 +1,75 @@
-# 🎯 Computer Vision + Blockchain DApp
+# 🎯 Chapter 3 — Computer Vision + Blockchain (Lessons 6-10)
 
-**Decentralized identity management using real-time face tracking + Cardano blockchain**
-
-> 📖 **Start here**: Check [INDEX.md](INDEX.md) for documentation guide
+**Tích hợp Computer Vision với Blockchain: Face Tracking sử dụng DIDs trên Cardano**
 
 ---
 
-## ⚡ Quick Start (5 minutes)
+## 📋 Danh sách bài học
 
-### 1. Get Blockfrost API Key
+| Bài | Chủ đề | Thư mục |
+|-----|--------|---------|
+| **Lesson 6** | CV + DID Integration (Smart Contract, Aiken) | `lesson6_cv_did_integration/` |
+| **Lesson 7** | Setup AI Model (Face Tracking) + IPFS | `lesson7_face_tracking_ipfs/` |
+| **Lesson 8** | Off-chain Code: AI Logic + On-chain TX | `lesson8_offchain_code/` |
+| **Lesson 9** | Deploy DApp hoàn chỉnh lên Testnet | `lesson9_deploy_dapp/` |
+| **Lesson 10** | Demo DApp | `lesson10_demo_dapp/` |
+
+## 🏗️ Kiến trúc tổng quan
+
+```
+User (Browser)
+     ↓
+React Frontend (:5173)          [Lesson 10]
+     ↓ HTTP API
+FastAPI Backend (:8000)          [Lesson 9]
+     ├─ MediaPipe (Face Detection) [Lesson 7]
+     ├─ Pinata IPFS (Off-chain)    [Lesson 7]
+     └─ PyCardano + Blockfrost     [Lesson 8]
+            ↓
+     Aiken Smart Contract           [Lesson 6]
+     (DID Validator, Plutus V3)
+```
+
+## ⚙️ Yêu cầu chung
+
+- Python 3.9+
+- Node.js 18+ (Lesson 10)
+- Aiken v1.1.21 (Lesson 6)
+- Tài khoản [Blockfrost](https://blockfrost.io) — Project ID cho **Preprod**
+- Tài khoản [Pinata](https://pinata.cloud) — JWT token (miễn phí)
+- Ví Cardano có seed phrase + ít nhất **5 tADA** trên Preprod
+
+## 🔧 Cài đặt
+
+### 1. Tạo môi trường ảo
+
 ```bash
-# https://blockfrost.io/ → Sign up → Create project → Copy ID
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
 ```
 
-### 2. Clone & Setup
+### 2. Cấu hình biến môi trường
+
 ```bash
-# Backend
-cd backend && pip install -r requirements.txt
-
-# Frontend
-cd frontend && npm install
+cp .env.example .env
+# Điền: BLOCKFROST_PROJECT_ID, PINATA_JWT, MNEMONIC
 ```
 
-### 3. Configure
-Create `.env`:
+### 3. Bắt đầu từ Lesson 6
+
 ```bash
-BLOCKFROST_PROJECT_ID=preview_your_key_here
-IPFS_GATEWAY_URL=http://localhost:5001
+cd lesson6_cv_did_integration/did_contract
+aiken build && aiken check
 ```
 
-### 4. Run
-```bash
-# Terminal 1: Backend
-cd backend && python main.py
+## 🔗 Tài liệu tham khảo
 
-# Terminal 2: Frontend
-cd frontend && npm run dev
-
-# Terminal 3 (Optional): IPFS
-ipfs daemon
-```
-
-✅ **Open**: http://localhost:5173
-
----
-
-## 📋 Features
-
-✅ **Real-time Face Detection** - MediaPipe tracking  
-✅ **Blockchain DIDs** - Cardano smart contracts  
-✅ **Off-chain Storage** - IPFS + optional Pinata  
-✅ **Web DApp** - React TypeScript interface  
-✅ **100% Real APIs** - No mocks  
-
----
-
-## 🏗️ Architecture
-
-```
-React Frontend (5173)
-    ↓
-FastAPI Backend (8000)
-    ├─ Face Detection (MediaPipe)
-    ├─ IPFS Client (5001)
-    └─ Cardano Client (Blockfrost)
-        ↓
-    ├─ Cardano Preview Testnet
-    └─ IPFS Network
-```
-
----
-
-## 🔌 API Endpoints
-
-```
-POST /api/v1/detect-faces      # Upload image → Get faces
-POST /api/v1/register-did      # Register on blockchain
-POST /api/v1/verify-face       # Verify identity
-GET  /api/v1/did/{did_id}      # Get DID document
-```
-
-**Full docs**: http://localhost:8000/docs
-
----
-
-## 📁 Structure
-
-```
-├── backend/          # FastAPI + Cardano + IPFS
-├── frontend/         # React DApp
-├── smart_contracts/  # Aiken validators
-├── docs/             # Documentation
-├── README.md         # This file
-├── SETUP.md          # Installation guide
-├── SECURITY.md       # Security notes
-└── INDEX.md          # Documentation index
-```
-
----
-
-## ⚙️ Tech Stack
-
-| Component | Tech |
-|-----------|------|
-| Frontend | React 18, TypeScript, Vite |
-| Backend | Python 3.11, FastAPI |
-| Blockchain | Cardano, Aiken, Plutus V3 |
-| Storage | IPFS Kubo, Pinata (optional) |
-| API | Blockfrost |
-
----
-
-## 📖 Documentation
-
-- **[INDEX.md](INDEX.md)** - Docs navigation
-- **[SETUP.md](SETUP.md)** - Installation guide (detailed)
-- **[SECURITY.md](SECURITY.md)** - Security best practices
-- **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Project layout
-
----
-
-## 🚀 Development
-
-### Test API
-```bash
-cd backend && pytest tests/
-```
-
-### Build Smart Contracts
-```bash
-cd smart_contracts && aiken build
-```
-
-### Run with Docker
-```bash
-docker-compose up
-```
-
----
-
-## 🔐 Security
-
-✅ Private keys stored locally  
-✅ Transactions signed on-chain  
-✅ Smart contracts validated  
-✅ IPFS content hashed  
-
-See [SECURITY.md](SECURITY.md)
-
----
-
-## 🆘 Troubleshooting
-
-**Backend error?** → See [SETUP.md](SETUP.md) Troubleshooting  
-**IPFS failed?** → Run `ipfs daemon`  
-**Blank frontend?** → Run `npm install && npm run dev`  
-
----
-
-## 📄 License
-
-MIT
+- [Aiken Language](https://aiken-lang.org/)
+- [PyCardano Documentation](https://pycardano.readthedocs.io/)
+- [Blockfrost API](https://docs.blockfrost.io/)
+- [MediaPipe Face Detection](https://ai.google.dev/edge/mediapipe/solutions/vision/face_detector)
+- [Pinata IPFS](https://docs.pinata.cloud/)
 
 ---
 
 **Author**: Sonson0910 @ Cardano Developer Course
-
-**Status**: ✅ Production Ready (Real APIs, No Mocks)

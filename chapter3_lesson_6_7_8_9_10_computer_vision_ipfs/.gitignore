@@ -1,73 +1,26 @@
-# Git ignore file for Computer Vision + Blockchain DApp
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
+# Environment
+.env
 venv/
-ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+__pycache__/
+*.pyc
+.pytest_cache/
 
 # Node
 node_modules/
-npm-debug.log
-yarn-error.log
 dist/
-.next/
+
+# Aiken
+build/
+artifacts/
+
+# OS
+.DS_Store
+Thumbs.db
 
 # IDE
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
-.DS_Store
 
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Build
-build/
-dist/
-*.o
-*.a
-*.so
-
-# Frontend
-.cache/
-coverage/
-build/
-
-# Backend
-.pytest_cache/
-htmlcov/
-
-# Smart Contracts
-smart_contracts/build/
-smart_contracts/plutus/
-
-# IPFS
-.ipfs/
-ipfs-data/
-
-# Docker
-.docker/
+# Keys
+*.sk
+*.skey
