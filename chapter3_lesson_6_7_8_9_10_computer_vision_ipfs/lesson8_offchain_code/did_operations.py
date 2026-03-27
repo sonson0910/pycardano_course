@@ -161,9 +161,10 @@ class DIDManager:
             return None
 
         builder = TransactionBuilder(self.context)
-        builder.add_script_input(target, self.script, Redeemer(Register()))
+        builder.add_input_address(self.address)  # Wallet UTxOs cho fees!
+        builder.add_script_input(utxo=target, script=self.script, redeemer=Redeemer(Register()))
         builder.required_signers = [self.pay_vkey.hash()]
-        # Continuing output: same datum, same amount
+        # Continuing output: same datum (RawCBOR OK — không cần truy cập fields)
         builder.add_output(TransactionOutput(
             self.script_address, Value(target.output.amount.coin), datum=target.output.datum,
         ))
@@ -181,7 +182,9 @@ class DIDManager:
             print(f"❌ UTxO not found: {lock_tx_hash}")
             return None
 
-        input_datum = target.output.datum
+        # Deserialize RawCBOR trước khi truy cập fields!
+        raw_datum = target.output.datum
+        input_datum = DIDDatum.from_cbor(raw_datum.cbor)
         output_datum = DIDDatum(
             did_id=input_datum.did_id,
             face_ipfs_hash=input_datum.face_ipfs_hash,
@@ -191,7 +194,8 @@ class DIDManager:
         )
 
         builder = TransactionBuilder(self.context)
-        builder.add_script_input(target, self.script, Redeemer(Verify()))
+        builder.add_input_address(self.address)  # Wallet UTxOs cho fees!
+        builder.add_script_input(utxo=target, script=self.script, redeemer=Redeemer(Verify()))
         builder.add_output(TransactionOutput(
             self.script_address, Value(target.output.amount.coin), datum=output_datum,
         ))
@@ -209,7 +213,9 @@ class DIDManager:
             print(f"❌ UTxO not found: {lock_tx_hash}")
             return None
 
-        input_datum = target.output.datum
+        # Deserialize RawCBOR trước khi truy cập fields!
+        raw_datum = target.output.datum
+        input_datum = DIDDatum.from_cbor(raw_datum.cbor)
         output_datum = DIDDatum(
             did_id=input_datum.did_id,
             face_ipfs_hash=new_ipfs_hash.encode("utf-8"),
@@ -219,7 +225,8 @@ class DIDManager:
         )
 
         builder = TransactionBuilder(self.context)
-        builder.add_script_input(target, self.script, Redeemer(Update()))
+        builder.add_input_address(self.address)  # Wallet UTxOs cho fees!
+        builder.add_script_input(utxo=target, script=self.script, redeemer=Redeemer(Update()))
         builder.required_signers = [self.pay_vkey.hash()]
         builder.add_output(TransactionOutput(
             self.script_address, Value(target.output.amount.coin), datum=output_datum,
@@ -239,7 +246,8 @@ class DIDManager:
             return None
 
         builder = TransactionBuilder(self.context)
-        builder.add_script_input(target, self.script, Redeemer(Revoke()))
+        builder.add_input_address(self.address)  # Wallet UTxOs cho fees!
+        builder.add_script_input(utxo=target, script=self.script, redeemer=Redeemer(Revoke()))
         builder.required_signers = [self.pay_vkey.hash()]
         # NO continuing output — ADA returns to wallet
         signed_tx = builder.build_and_sign([self.pay_skey, self.stake_skey], change_address=self.address)

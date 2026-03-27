@@ -3,9 +3,11 @@ Face Detection Service — MediaPipe Tasks API (v0.10.32+)
 
 Dùng mp.tasks.vision.FaceDetector thay vì mp.solutions (deprecated).
 Singleton service cho face detection trong API router.
+Auto-download model nếu chưa có.
 """
 
 import logging
+import urllib.request
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -15,8 +17,23 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+# Model URL & path
+MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite"
+MODELS_DIR = Path(__file__).parent.parent.parent / "models"
+MODEL_PATH = MODELS_DIR / "blaze_face_short_range.tflite"
+
 # Singleton
 _instance: Optional["FaceTrackerService"] = None
+
+
+def _ensure_model():
+    """Auto-download model nếu chưa có (giống lesson7 face_detect.py)"""
+    if MODEL_PATH.exists():
+        return
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    logger.info(f"📥 Downloading model: blaze_face_short_range.tflite ...")
+    urllib.request.urlretrieve(MODEL_URL, str(MODEL_PATH))
+    logger.info(f"   ✅ Saved to {MODEL_PATH}")
 
 
 def get_face_tracker() -> "FaceTrackerService":
@@ -31,17 +48,11 @@ class FaceTrackerService:
     """MediaPipe Face Detection (Tasks API v0.10.32+) + Embedding"""
 
     def __init__(self, min_confidence: float = 0.3):
-        # Model path
-        model_path = Path(__file__).parent.parent.parent / "models" / "blaze_face_short_range.tflite"
-        if not model_path.exists():
-            raise FileNotFoundError(
-                f"Model not found: {model_path}\n"
-                "Download: curl -sL -o models/blaze_face_short_range.tflite "
-                "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite"
-            )
+        # Auto-download model nếu chưa có
+        _ensure_model()
 
         # New Tasks API
-        base_options = mp.tasks.BaseOptions(model_asset_path=str(model_path))
+        base_options = mp.tasks.BaseOptions(model_asset_path=str(MODEL_PATH))
         options = mp.tasks.vision.FaceDetectorOptions(
             base_options=base_options,
             min_detection_confidence=min_confidence,

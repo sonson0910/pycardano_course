@@ -135,6 +135,7 @@ def main():
     print(f"\n📤 Action: {args.action.upper()} (continuing_output={needs_continuing})...")
 
     builder = TransactionBuilder(context)
+    builder.add_input_address(sender)  # Wallet UTxOs cho fees!
     builder.add_script_input(
         utxo=target,
         script=script,
@@ -145,10 +146,11 @@ def main():
     if needs_continuing:
         # CKV: tạo continuing output quay lại script
         # Decode inline datum từ UTxO
-        input_datum = target.output.datum
+        raw_datum = target.output.datum
 
         if args.action == "verify":
-            # Verify: tạo output datum với verified=1
+            # Verify: deserialize RawCBOR → tạo datum mới với verified=1
+            input_datum = DIDDatum.from_cbor(raw_datum.cbor)
             out_datum = DIDDatum(
                 did_id=input_datum.did_id,
                 face_ipfs_hash=input_datum.face_ipfs_hash,
@@ -160,6 +162,8 @@ def main():
             if not args.new_ipfs_hash:
                 print("❌ --new-ipfs-hash required for update action")
                 sys.exit(1)
+            # Update: deserialize RawCBOR → tạo datum mới với ipfs_hash mới
+            input_datum = DIDDatum.from_cbor(raw_datum.cbor)
             out_datum = DIDDatum(
                 did_id=input_datum.did_id,
                 face_ipfs_hash=args.new_ipfs_hash.encode("utf-8"),
@@ -168,8 +172,8 @@ def main():
                 verified=input_datum.verified,
             )
         else:
-            # Register: same datum
-            out_datum = input_datum
+            # Register: giữ nguyên datum (RawCBOR OK — không cần truy cập fields)
+            out_datum = raw_datum
 
         builder.add_output(
             TransactionOutput(

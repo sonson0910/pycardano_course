@@ -1,6 +1,6 @@
 """
-Lesson 6 — Face Detection & Embedding Extraction
-Sử dụng MediaPipe để phát hiện khuôn mặt và trích xuất embedding
+Lesson 7 — Face Detection & Embedding Extraction
+Sử dụng MediaPipe Tasks API (v0.10+) để phát hiện khuôn mặt và trích xuất embedding
 
 Usage:
     python face_detect.py --image path/to/face.jpg
@@ -10,6 +10,7 @@ Usage:
 import argparse
 import json
 import sys
+import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -17,6 +18,39 @@ from typing import List, Optional, Tuple
 import cv2
 import mediapipe as mp
 import numpy as np
+
+# ═══════════════════════════════════════════════
+# MODEL PATHS — tự động download nếu chưa có
+# ═══════════════════════════════════════════════
+
+MODELS_DIR = Path(__file__).parent / "models"
+
+FACE_DETECTOR_MODEL = MODELS_DIR / "blaze_face_short_range.tflite"
+FACE_DETECTOR_URL = (
+    "https://storage.googleapis.com/mediapipe-models/"
+    "face_detector/blaze_face_short_range/float16/latest/blaze_face_short_range.tflite"
+)
+
+FACE_LANDMARKER_MODEL = MODELS_DIR / "face_landmarker.task"
+FACE_LANDMARKER_URL = (
+    "https://storage.googleapis.com/mediapipe-models/"
+    "face_landmarker/face_landmarker/float16/latest/face_landmarker.task"
+)
+
+
+def _ensure_model(path: Path, url: str):
+    """Download model nếu chưa có"""
+    if path.exists():
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    print(f"📥 Downloading model: {path.name} ...")
+    urllib.request.urlretrieve(url, str(path))
+    print(f"   ✅ Saved to {path}")
+
+
+# ═══════════════════════════════════════════════
+# DATA CLASSES
+# ═══════════════════════════════════════════════
 
 
 @dataclass
@@ -30,38 +64,57 @@ class FaceResult:
     embedding: Optional[List[float]] = None
 
 
+# ═══════════════════════════════════════════════
+# FACE DETECTOR — MediaPipe Tasks API
+# ═══════════════════════════════════════════════
+
+
 class FaceDetector:
     """
-    Face Detection sử dụng MediaPipe
+    Face Detection sử dụng MediaPipe Tasks API (v0.10+)
 
     MediaPipe Face Detection:
     - Ultra-fast inference (< 50ms per frame)
     - 95%+ accuracy
     - 6 keypoints: mắt, mũi, tai, miệng
 
-    MediaPipe Face Mesh:
-    - 468 facial landmarks với depth estimation
+    MediaPipe Face Landmarker:
+    - 478 facial landmarks với depth estimation
     - Dùng để tạo face embedding
     """
 
     def __init__(self, min_confidence: float = 0.5):
-        self.mp_face_detection = mp.solutions.face_detection
-        self.mp_face_mesh = mp.solutions.face_mesh
+        # Download models nếu chưa có
+        _ensure_model(FACE_DETECTOR_MODEL, FACE_DETECTOR_URL)
+        _ensure_model(FACE_LANDMARKER_MODEL, FACE_LANDMARKER_URL)
 
-        self.detector = self.mp_face_detection.FaceDetection(
-            model_selection=1,  # 1 = full-range, 0 = short-range
+        # FaceDetector — phát hiện vị trí mặt
+        detector_options = mp.tasks.vision.FaceDetectorOptions(
+            base_options=mp.tasks.BaseOptions(
+                model_asset_path=str(FACE_DETECTOR_MODEL)
+            ),
             min_detection_confidence=min_confidence,
         )
+        self.detector = mp.tasks.vision.FaceDetector.create_from_options(
+            detector_options
+        )
 
-        self.mesh = self.mp_face_mesh.FaceMesh(
-            static_image_mode=True,
-            max_num_faces=5,
-            min_detection_confidence=min_confidence,
+        # FaceLandmarker — 478 landmarks 3D
+        landmarker_options = mp.tasks.vision.FaceLandmarkerOptions(
+            base_options=mp.tasks.BaseOptions(
+                model_asset_path=str(FACE_LANDMARKER_MODEL)
+            ),
+            num_faces=5,
+            min_face_detection_confidence=min_confidence,
+            min_face_presence_confidence=min_confidence,
             min_tracking_confidence=0.5,
+        )
+        self.landmarker = mp.tasks.vision.FaceLandmarker.create_from_options(
+            landmarker_options
         )
 
         self.min_confidence = min_confidence
-        print("✅ FaceDetector initialized (MediaPipe)")
+        print(f"✅ FaceDetector initialized (MediaPipe Tasks API v{mp.__version__})")
 
     def detect(self, frame: np.ndarray) -> List[FaceResult]:
         """
@@ -76,22 +129,23 @@ class FaceDetector:
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, _ = frame.shape
 
-        results = self.detector.process(frame_rgb)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
+        result = self.detector.detect(mp_image)
         faces: List[FaceResult] = []
 
-        if not results.detections:
+        if not result.detections:
             return faces
 
-        for idx, detection in enumerate(results.detections):
-            score = detection.score[0]
+        for idx, detection in enumerate(result.detections):
+            score = detection.categories[0].score
             if score < self.min_confidence:
                 continue
 
-            bbox_data = detection.location_data.relative_bounding_box
-            x = max(0, int(bbox_data.xmin * w))
-            y = max(0, int(bbox_data.ymin * h))
-            bw = min(int(bbox_data.width * w), w - x)
-            bh = min(int(bbox_data.height * h), h - y)
+            bbox = detection.bounding_box
+            x = max(0, bbox.origin_x)
+            y = max(0, bbox.origin_y)
+            bw = min(bbox.width, w - x)
+            bh = min(bbox.height, h - y)
 
             faces.append(
                 FaceResult(
@@ -105,7 +159,7 @@ class FaceDetector:
 
     def extract_landmarks(self, frame: np.ndarray) -> List[List[dict]]:
         """
-        Trích xuất 468 facial landmarks bằng FaceMesh
+        Trích xuất 478 facial landmarks bằng FaceLandmarker
 
         Returns:
             Danh sách landmarks cho mỗi khuôn mặt
@@ -113,13 +167,14 @@ class FaceDetector:
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, _ = frame.shape
 
-        results = self.mesh.process(frame_rgb)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
+        result = self.landmarker.detect(mp_image)
         all_landmarks = []
 
-        if results.multi_face_landmarks:
-            for face_lm in results.multi_face_landmarks:
+        if result.face_landmarks:
+            for face_lm in result.face_landmarks:
                 landmarks = []
-                for i, lm in enumerate(face_lm.landmark):
+                for i, lm in enumerate(face_lm):
                     landmarks.append(
                         {
                             "idx": i,
@@ -211,8 +266,13 @@ class FaceDetector:
 
             label = f"Face {face.face_id} ({face.confidence:.0%})"
             cv2.putText(
-                output, label, (x, y - 10),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2,
+                output,
+                label,
+                (x, y - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                (0, 255, 0),
+                2,
             )
 
         return output
@@ -220,7 +280,7 @@ class FaceDetector:
     def release(self):
         """Giải phóng tài nguyên MediaPipe"""
         self.detector.close()
-        self.mesh.close()
+        self.landmarker.close()
 
 
 def save_embedding(faces: List[FaceResult], output_path: str):
@@ -251,8 +311,12 @@ def main():
     parser = argparse.ArgumentParser(description="Face Detection & Embedding")
     parser.add_argument("--image", type=str, help="Đường dẫn tới ảnh")
     parser.add_argument("--webcam", action="store_true", help="Sử dụng webcam")
-    parser.add_argument("--output", type=str, default="face_embedding.json", help="File output")
-    parser.add_argument("--confidence", type=float, default=0.5, help="Ngưỡng confidence")
+    parser.add_argument(
+        "--output", type=str, default="face_embedding.json", help="File output"
+    )
+    parser.add_argument(
+        "--confidence", type=float, default=0.5, help="Ngưỡng confidence"
+    )
     args = parser.parse_args()
 
     if not args.image and not args.webcam:
@@ -274,7 +338,9 @@ def main():
         print(f"✅ Detected {len(faces)} face(s)")
 
         for face in faces:
-            print(f"   Face {face.face_id}: confidence={face.confidence:.2f}, bbox={face.bbox}")
+            print(
+                f"   Face {face.face_id}: confidence={face.confidence:.2f}, bbox={face.bbox}"
+            )
             print(f"   Landmarks: {len(face.landmarks)} points")
             if face.embedding:
                 print(f"   Embedding: {len(face.embedding)}-dimensional vector")
@@ -308,8 +374,13 @@ def main():
 
             # Hiển thị số khuôn mặt
             cv2.putText(
-                output_frame, f"Faces: {len(faces)}", (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2,
+                output_frame,
+                f"Faces: {len(faces)}",
+                (10, 30),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1,
+                (0, 255, 0),
+                2,
             )
             cv2.imshow("Face Detection (Press 'q' to quit)", output_frame)
 

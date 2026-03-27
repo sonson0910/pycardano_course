@@ -126,11 +126,20 @@ async def verify_did(did_id: str, file: UploadFile = File(...)):
     
     svc = get_cardano_service()
     did_info = svc.get_did(did_id)
+    if not did_info:
+        raise HTTPException(status_code=404, detail="DID not found")
     
     # Bước 1: Detect face từ ảnh upload
     image_bytes = await file.read()
     tracker = get_face_tracker()
     faces = tracker.detect_and_embed(image_bytes)
+
+    if not faces:
+        return FaceVerifyResponse(
+            did_id=did_id, match=False, similarity=0.0,
+            threshold=0.7, message="No face detected in uploaded image",
+        )
+
     new_embedding = faces[0]["embedding"]
 
     # Bước 2: Fetch embedding gốc từ IPFS
@@ -138,27 +147,26 @@ async def verify_did(did_id: str, file: UploadFile = File(...)):
     original_data = ipfs.get_json(did_info["ipfs_hash"])
     original_embedding = original_data["faces"][0]["embedding"]
 
-    # Bước 3: Cosine similarity
+    # Bước 3: Cosine similarity (+ 1e-8 tránh chia 0)
     vec_new = np.array(new_embedding, dtype=np.float32)
     vec_orig = np.array(original_embedding, dtype=np.float32)
     dot = np.dot(vec_new, vec_orig)
-    similarity = float(dot / (np.linalg.norm(vec_new) * np.linalg.norm(vec_orig)))
+    similarity = float(dot / (np.linalg.norm(vec_new) * np.linalg.norm(vec_orig) + 1e-8))
 
-    # Bước 4: Match → submit TX
+    # Bước 4: Match → submit TX on-chain
     threshold = 0.7
     if similarity >= threshold:
         result = svc.perform_action(did_id, "verify")
         return FaceVerifyResponse(
-            match=True,
-            similarity=similarity,
-            tx_hash=result["tx_hash"],
-            message="Face matched! DID verified on-chain."
+            did_id=did_id, match=True, similarity=round(similarity, 4),
+            threshold=threshold, message="Face matched! DID verified on-chain.",
+            tx_hash=result["tx_hash"], explorer_url=result["explorer_url"],
         )
     else:
         return FaceVerifyResponse(
-            match=False,
-            similarity=similarity,
-            message=f"Face mismatch ({similarity:.0%} < {threshold:.0%})"
+            did_id=did_id, match=False, similarity=round(similarity, 4),
+            threshold=threshold,
+            message=f"Face mismatch (similarity: {similarity:.2%} < {threshold:.0%})",
         )
 ```
 
