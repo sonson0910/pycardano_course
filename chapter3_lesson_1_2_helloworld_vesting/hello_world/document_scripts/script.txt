@@ -1,0 +1,103 @@
+1. Starter
+- Lời chào: 
+Chào mừng các bạn cùng trở lại với khoá học PyCardano: 
+Khóa học cơ bản dành cho nhà phát triển Python và AI
+- Giới thiệu chương:
+Kết thúc chương số 2 chúng ta đã nắm được kiến thức để implement 1 số phương thức của Pycardano vào để sử dụng
+Hôm nay chúng ta sẽ cùng đến với chương số 3 của khóa học với mục tiêu chính là tích hợp PyCardano với SmartContract và từ đó xây dựng 1 dApp hoàn chỉnh
+Và chúng ta sẽ mở đầu chương số 3 với việc tích hợp xử lý những smart contract đơn giản như Hello world, Vesting, các action liên quan đến NFT
+
+2. Introduction
+- Giới thiệu bài học:
+Ở video hôm nay chúng ta sẽ cùng xây dựng 1 contract căn bản kiểu "Hello World!"
+để minh họa cách hoạt động của smart contract và sử dụng Pycardano để tương tác với chúng.
+Và ngôn ngữ xây dựng hợp đồng thông minh chúng ta sẽ sử dụng là Aiken
+
+- Nêu mục tiêu bài học:
+Mục tiêu của video ngày hôm nay là chúng ta sẽ nắm được cơ chế cốt lõi của smart contract và cách để sử dụng smart contract này thông qua PyCardano
+
+- Nêu timeline bài giảng
+Với mục tiêu bài giảng mình đã đề cập thì nội dung video ngày hôm nay của chúng ta sẽ bao gồm 2 phần chính
++ Xây dựng hợp đồng Hello world với Aiken
++ Tích hợp sử dụng hợp đồng thông qua PyCardano
+
+3. Development
+- Nêu bài toán, tình huống (Luồng hoạt động sẽ xây dựng)
+Tình huống mà chúng ta sẽ giải quyết trên hợp đồng Hello World sẽ đơn giản thôi đó là
+Từ địa chỉ ví của mình sẽ gửi 1 số tiền vào trong cái Hợp đồng Hello World này
+Và sau đó sẽ làm sao để lấy ra được số tiền đang để trong hợp đồng về lại ví
+Chúng ta sẽ có cái high-level flow như hình
+
+- Hướng, Ý tưởng xây dựng hợp đồng
++ Với nghiệp vụ được mô tả như vừa rồi thì hợp đồng thông minh ở đây chúng ta có thể xây dựng 1 số cơ chế để validate
++ Code hợp đồng thông minh thì bản chất nó chỉ là việc các bạn validate trả về true false thôi, khi gọi đến hợp đồng nếu các tham số đáp ứng logic trả ra true thì giao dịch sẽ được thực hiện
++ Giả sử ở đây mình sẽ xây dựng logic validate trên hợp đồng đơn giản thôi đó là
+	+ Thứ 1: Người lock và người unlock phải là 1 người
+	+ Thử 2: Phải truyền đúng thông điệp "Hello, World!"
++ Thì mô tả trực quan nó là như vậy, ý tưởng dể mình triển khai các cái logic trên là
+	+ Hợp đồng của mình sẽ là hợp đồng handle việc tiêu thụ (spend), có nghĩa là khi việc tiêu thụ diễn ra các logic trong hợp đồng mới đc thực hiện
+	
+	+ Thứ 1: Để implement logic so sánh Người lock và người unlock phải là 1 người 
+	mình sẽ cho phép UTxO đc tạo ra trên hợp đồng có 1 datum bao gồm địa chỉ ví người lock
+	Thì khi UTxO được tiêu thụ thì sẽ kiểm tra địa chỉ ví người kí có phải địa chỉ người lock được lưu trogn datum của UTxO đó hay k 
+	
+	+ Thứ 2: Để implement logic Phải truyền đúng thông điệp "Hello, World!" thì đoạn này đơn giản đó là mình sẽ 
+	kiểm tra thằng redeemer  (cái này là cái cũng được khỉ kèm khi tiêu UTxO) có cái trường ví dụ là msg == "Hello, World!" không 
+
+=====================CUT=========================================
+Ok thì chúng ta cùng nhảy vào code để rõ hơn nhé
+Mà trước khi đi vào implement bọn logic kia thì ta sẽ setup để tạo ra được dự án trước
+
+- Setup môi trường làm việc
+Mình có để một lệnh cơ bản cần thiết ở đây mà chúng ta hay dùng, mình sẽ giải thích qua 1 lượt rồi sau đó thao tác
++ trươc het chúng ta sẽ tạo mỗi trường làm việc với python: (mục đích là để gom ca package cảu các bạn cần dùng chỉ tồn tại trong dự án)
+	++ python3 -m venv venv 
+	++ Và kích hoạt môi trường: venv\Scripts\Activate.ps1
+	(Kích hoạt được bạn sẽ thấy cái biêu rtuwongj xanh xanh này enc mở ngoặc này)
+	Ở dây mình sẽ hướng dẫn trên môi trường window, Ở các môi trường khác thì hoàn toàn tương tự nha
++ Trước hết ngoài python ra chúng ta cần phải cài thêm aiken bằng cách
+	++ npm install -g @aiken-lang/aiken (với npm thì bạn cần cài thêm node trước)
++ Tiếp đến là khởi tạo project, aiken đã hỗ trợ chúng ta lệnh "aiken new aiken-lang/contract" để tạo ra 1 template nhanh chóng, sau khi chạy chúng ta có kết quả sau
+(Overview các folder và nói ý nghĩa)
++ Và để chạy build/test chúng ta sẽ sử dụng:
+	aiken build: như các bạn thấy thì sau khi build chúng ta sẽ có 1 file plutus.json file này vô cùng quan trọng vì lát nữa khi tích hợp dữ liệu chúng ta sẽ sử dụng trong file này
+	aiken check: để kiểm tra
+
+=====================CUT=========================================
+Bây giờ chúng ta sẽ cùng tạo thư mục dự án, cài đặt những package cần thiết 
+- Đầu tiên ta tạo 1 thư mục lớn của project: mình để tên là hello_world
+ + Tạo môi trường ảo venv để code python: python3 -m venv venv 
+ + Active môi trường ảo: venv\Scripts\Activate.ps1
+- Tiếp theo mình sẽ tạo 1 project aiken trong thư mục này (trước đó thì như mình đã bảo các bạn cần cài aiken trước: npm install -g @aiken-lang/aiken)
+- Ok sau khi cài xong cta sẽ dùng lệnh sau để tạo dự án
++ Ở đây chũng ta có thể thấy cấu trúc thưu mục được tạo ra nó gồm những file này: và file mà chúng ta sẽ cần quan tâm là phía bên trong cái thư mục validator,.. mính sẽ đổi tên
+ban đầu nhìn code smart contract thì kho các bạn có thể cài thêm extension
+Mình sẽ thử build: và tạo ra, thứ mà chúng ta cần để ý đó là cái file plutus.json này. 
+Vì lát nữa trong code offchain (python) chúng ta sẽ dùng các dữ liệu hợp đông từ file này để thao tác 	
+pip install pycardano python-dotenv
+=======================CUT==============================
+3.1. Xây dựng hợp đồng Hello world với Aiken
+
+=======================
+Như vậy là chũng ta đã xây dựng xong code hợp đồng thông minh, bây giờ mình sẽ xây dựng code offchain sử dụng pycardano để tương tác với hợp đông fmaf mình vừa xây dựng.
+// Như các bạn đã đề cập thì chúng ta sẽ có 2 action là lock và unlock
+- Trước hết thì mình sẽ thực hiện việc lock trước (hay được hiểu là gửi ada đến cái hợp đồng). 
+
+
+3.2. Tích hợp sử dụng hợp đồng thông qua PyCardano
+- Hướng, Ý tưởng sử dụng hợp đồng
+Đó phần code hợp đồng đã xong, giờ chúng ta hãy thử tương tác qua code python nha.
+Ý tưởng sẽ là mình sẽ tạo ra 2 giao dịch: 1 dùng để lock tiền vào hợp đồng, 2 là dùng để unlock hợp đồng để tiền về lại ví
+Để chi tiết về hướng triển khai trong code thì  mình có chuẩn bị 1 sơ đồ sau để các bạn tưởng tượng ra cách thức chúng ta sẽ làm
+- Đầu tiên là về việc lock tiền vào contract
+
++ Rồi giờ ta sẽ implement nó trong code
+
++ Cùng thử chạy và check xem giao dịch đã thành công hay chưa bằng cách cop mã và tra trên cExplorer 
+
+- Rồi giờ làm sao để unlock	
+
+
+4. Plenary
+- Tóm tắt nội dung đã trình bày
+- Chuẩn bị những gì cho bài học kế tiếp
