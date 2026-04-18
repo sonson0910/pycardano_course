@@ -1,0 +1,679 @@
+﻿# Transcript bam sat video - Off-chain CIP-68 (ASR cleaned)
+
+- Goal: keep natural speaking style, fix ASR noise, normalize key technical terms.
+- Note: Source has 2 videos, so subtitles are exported as 2 SRT files.
+
+## Part 1 - Off-chain coding (no demo yet)
+- Video link: https://www.youtube.com/watch?v=TwjW-AfIVts
+
+[00:00:05] Xin chào mọi người. Chào mừng mọi người đã đến với video tiếp theo trong khóa học lập trình Cardano của chúng tôi. Ờ
+[00:00:13] trong video này chúng ta sẽ tiếp tục quá trình triển khai ví dụ CIP-68. Ờ sau khi chúng ta đã triển khai thành
+[00:00:22] hợp đồng thông minh lên mạng ờ Preprod Testnet. Đấy thì trong bài học này thì chúng ta sẽ thực hiện code off
+[00:00:31] để tương tác với các tính năng của hợp đồng thông minh bao gồm mint token,
+[00:00:37] update metadata và burn token
+[00:00:44] khi chúng ta đã triển khai hợp đồng thông minh ở giai đoạn trước rồi đấy thì chúng ta sẽ nhảy
+[00:00:54] code off-chain luôn. Mình sẽ hướng dẫn các bạn trực tiếp từng bước một. Thì
+[00:01:00] đầu tiên vẫn như các bước chuẩn bị trước đó thì chúng ta cũng phải set up môi trường. Đầu tiên chúng ta khởi tạo setup
+[00:01:09] trường ảo thì chúng ta sẽ vào cái thư mục CIP-68 trước.
+[00:01:19] Đây set up môi trường chúng ta sẽ đợi một lúc.
+[00:01:35] Ok.
+[00:01:36] Sau khi chúng ta đã setup môi trường ảo xong rồi, chúng ta sẽ thực hiện kích hoạt môi trường ảo. Thì đây là một câu
+[00:01:44] trên để kích hoạt môi trường ảo trên Windows.
+[00:01:49] Rồi sau khi kích hoạt xong rồi thì chúng ta sẽ thực hiện cài đặt các thư viện liên quan đến PyCardano hay là những thư viện
+[00:01:58] thực hiện để xây dựng các giao dịch liên quan đến Blockfrost đấy thì mọi người sẽ thêm cho mình một file là requirements.txt.
+[00:02:09] Trong đây sẽ ừ đưa ra những cái phiên bản về các thư viện mà chúng ta sẽ sử
+[00:02:17] Thì trong bài học code off-chain này chúng ta sẽ thực hiện cài đặt các cái thư viện như Cardano,
+[00:02:28] Blockfrost, Python này, python-dotenv này và một số các cái thư viện khác
+[00:02:36] FastAPI để xây dựng backend cho bài học tiếp theo và Uvicorn hoặc là
+[00:02:45] Pydantic. Đấy thì chúng ta sẽ thực hiện chúng ta lưu vào lưu vào và thoát bỏ.
+[00:02:53] Chúng ta sẽ thực hiện câu lệnh pip install -r requirements.txt để thực hiện chạy
+[00:03:05] chúng ta không cần
+[00:03:23] không satisfy được version lớn hơn 11
+[00:03:41] phiên bản sớm hơn xem nào. Không có à?
+[00:03:56] Không có thì chúng ta không cần ghi phiên bản đâu. Nó sẽ chủ động install phiên bản lớn nhất cho chúng ta đấy. Mới nhất cho chúng ta.
+[00:04:09] Đợi cho quá trình install các thư viện trong quá trình này nhá.
+[00:04:18] Để cho nó tự chạy thì chúng ta sẽ tạo một cái file .env đấy, file đề lưu biến môi trường của chúng ta. Thì giống như
+[00:04:26] bài học trước đó thì mình vẫn dùng lại file .env của các bài học trước đó. Mọi người có thể xem nhé.
+[00:04:35] Ok.
+[00:05:03] Ok, đã cài đặt xong các thư viện. Tiếp theo thì chúng ta sẽ bắt đầu đi vào code. Thì đầu tiên thì chúng ta sẽ thực
+[00:05:12] tạo một file gọi là cip68_utils.py.
+[00:05:19] Đấy, file này mục đích là chúng ta sẽ khai báo các
+[00:05:27] khi tạo file đấy, chúng ta sẽ tạo một thư mục off-chain để lưu code off-chain của chúng ta. Đấy, tạo file này
+[00:05:35] để gọi là chúng ta sẽ khai báo các cái biến, các cái hằng số, các cái kiểu dữ
+[00:05:44] và các cái hàm cần thiết cho quá trình chúng ta ừ tích hợp thư viện. Đấy
+[00:05:52] chúng ta sẽ nhảy vào code luôn. Đấy thì mình sẽ có một chút chú thích về cái file này. Đấy, cung
+[00:06:01] cấp các cái hàm function để thực hiện tương tác với CIP-68 hợp đồng thông minh. Đấy.
+[00:06:09] Tiếp theo thì chúng ta sẽ import một số các thư viện cần thiết ừ
+[00:06:20] gồm các cái thư viện như là xử lý JSON này, OS này, các cái thư viện liên quan đến
+[00:06:28] hay là thư viện liên quan đến của Python. Rồi tiếp theo là import PyCardano,
+[00:06:38] các cái thư viện. Ok. Tiếp theo chúng ta sẽ định nghĩa hai cái hằng số
+[00:06:45] cho cái reference token và user token.
+[00:06:51] Đấy, đây chính là hai cái hằng số mà chúng ta sẽ phải sử dụng sau này khá là nhiều để tạo ra các user token và reference token.
+[00:07:04] Ok.
+[00:07:06] Rồi sau khi chúng ta đã thêm hai cái prefix này vào rồi thì chúng ta sẽ định nghĩa các cái datum cũng như là redeemer cho CIP-68.
+[00:07:19] Đấy, với CIP-68 thì đầu tiên chúng ta sẽ thực hiện định nghĩa redeem cho
+[00:07:28] đồng mining policy mà chúng ta đã code trước đó. Thì hợp đồng minting
+[00:07:37] redeem kiểu redeem cho minting ấy nó sẽ có hai variant gồm mint token
+[00:07:49] và burn token và nó có cái tham số đầu vào là token name. Đấy chúng ta cũng phải định nghĩa tương tự.
+[00:07:59] Đầu tiên đó là mint token đây.
+[00:08:15] Đấy, mình sẽ nói lại một chút
+[00:08:27] cái tham số đầu tiên là constructor ID
+[00:08:33] này. Cái này chính là cái vị trí đầu tiên của cái hai cái variant của cái mint redeemer.
+[00:08:44] Khi chúng ta đưa ra constructor là 1 thì khi chúng ta chuyển cái data từ Py
+[00:08:52] Cardano này này lên on-chain thì nó sẽ hiểu là nó là cái tham số đầu tiên là cái variant vị trí
+[00:09:02] đầu tiên này nó khớp với cái mint token. Đấy. Còn tiếp theo là cái a
+[00:09:11] nghĩa cái redeemer thứ hai là burn token
+[00:09:20] thì nó sẽ có cái trường constructor là 1 và token name. Đấy thì khi chúng ta
+[00:09:28] lên nó sẽ hiểu là constructor là 1 thì nó sẽ đứng ở vị trí thứ hai trong cái mint redeem này. Kiểu dữ liệu
+[00:09:38] redeem này. Đấy tức là constructor là vị trí của hành động
+[00:09:47] định nghĩa trong kiểu dữ liệu trên hợp đồng thông minh. Mọi người có thể hiểu rõ ràng như thế. Tương
+[00:09:55] như vậy, ờ đối với store hợp đồng store ấy, tức là khai báo
+[00:10:03] cho cái store nó cũng có hai cái ờ redeem. Đầu tiên là update, thứ hai là
+[00:10:11] burn reference. Chúng ta cũng khai báo tương tự. Mọi người có hiểu ý tưởng không? Đấy.
+[00:10:21] Đấy. Update metadata này. Ép kiểu thành Plutus data. Đấy.
+[00:10:28] Trong đó thì cái thằng redeem này thì nó không có tham số là token name ở trên bởi vì là
+[00:10:38] chỉ cần vị trí thôi. Trong hợp đồng nó chỉ cần vị trí để khớp với redeem là
+[00:10:44] để hợp đồng nó biết redeem của nó là gì thôi.
+[00:10:49] Đấy, tương tự như vậy với burn reference cũng tương tự.
+[00:10:55] Tiếp theo đấy xong phần định nghĩa
+[00:11:07] định nghĩa redeemer.
+[00:11:17] Rồi tiếp theo thì chúng ta sẽ định nghĩa datum đấy.
+[00:11:24] Định nghĩa datum vẫn khai báo @dataclass này ờ kiểu
+[00:11:32] và theo kiểu dữ liệu data. Đấy thì datum sẽ chứa các trường sau đây
+[00:11:40] y hệt như trên hợp đồng thông minh chúng ta định nghĩa kiểu ấy. Đầu tiên vẫn cần có constructor ID đấy.
+[00:11:50] Vì là trong Datum của CIP-68 ấy nó sẽ không có variant. Variant của nó là bộ dữ
+[00:11:59] này là duy nhất rồi nên chúng ta cũng cần phải khai báo nó là bắt đầu từ vị trí không. Đấy. Tiếp theo đó là trường policy ID này.
+[00:12:11] Ứ tiếp theo đó là asset name. Thì asset name này nó chưa có prefix, mọi người chú ý.
+[00:12:19] Và tiếp theo là trường owner. Owner chính là public key để sau này chúng ta xác thực chữ ký ấy.
+[00:12:31] Tiếp theo là metadata kiểu dữ liệu là dict đấy.
+[00:12:36] Dictionary với key và value và version. Ok, như vậy chúng ta đã định nghĩa xong kiểu 68 ở off-chain đấy.
+[00:12:50] Rồi tiếp theo thì chúng ta sẽ viết các cái hàm ờ
+[00:12:58] hàm load script
+[00:13:08] file plutus.json.
+[00:13:14] Đấy. Ờ file này thì chúng ta sẽ phải định nghĩa có tham số đầu vào là
+[00:13:24] đường dẫn của file này và trả về kiểu một dictionary.
+[00:13:34] Đấy, chú thích một chút.
+[00:13:40] Đấy, tiếp theo chúng ta sẽ thực hiện mở cái file với đường dẫn
+[00:13:46] load vào đấy. Tiếp theo chúng ta sẽ khai báo script
+[00:13:54] một mảng rỗng xong duyệt qua ờ các validator trong file ờ với cái title
+[00:14:05] cái key là validator đấy.
+[00:14:15] Đấy,
+[00:14:18] lấy ra title của cái validator. Xong lấy ra script.
+[00:14:26] Đấy, xong trả về script.
+[00:14:51] Cái này đây đúng không? Ok,
+[00:14:56] script xong rồi nhá. Tiếp theo chúng ta sẽ thực hiện load minting.
+[00:15:02] Load minting policy script này từ.
+[00:15:12] Đấy chúng ta sẽ khai báo thằng này nó sẽ là một hàm nhận vào đường dẫn và trả về PlutusV3Script.
+[00:15:25] Ừ, vì là đây là một ví dụ ờ gọi là giúp cho mọi người hiểu về
+[00:15:34] nguyên lý xây dựng và triển khai chuẩn CIP-68 trong thực tế. Chính vì thế mà
+[00:15:42] hợp đồng nó sẽ đơn giản, nó sẽ không có các parameter nên nó sẽ tạo ra policy ID cố định. Đấy,
+[00:15:54] ta sẽ lấy ra script này. Đấy, dùng cái hàm load
+[00:16:02] ở trên ấy. Đấy, xong lấy ra cái
+[00:16:09] thông tin của cái script đấy. Thông tin của cái hàm script mint ấy. Đấy.
+[00:16:20] thực hiện trả về kiểu PlutusV3Script.
+[00:16:26] Ok chưa? Rồi tiếp theo thì chúng ta tương tự như vậy chúng ta cũng sẽ phải load cái script của cái hợp đồng store đúng không?
+[00:16:38] Đấy,
+[00:16:40] đấy. Nó cũng trả về Plutus V3 script này.
+[00:16:52] Rồi tiếp theo cũng tương tự như vậy, nó chỉ thay cái ờ title thôi, thay cái key là CIP-68
+[00:17:02] chấm spend. Lấy đúng cái hàm spend trong
+[00:17:08] gì nhở? Đây lấy đúng cái hàm này trong hợp đồng thông minh. Ừ được
+[00:17:17] sang file trước đó. Tiếp theo thì chúng ta sẽ phải viết một cái hàm gọi là hàm tạo ờ CIP-68 asset name. Đấy,
+[00:17:36] name.
+[00:17:38] Ừ, tức là gắn thêm cái prefix cho nó này. Đấy, mình gọi là vừa code vừa có
+[00:17:45] một chút. Ví dụ đầu tiên đó là chúng ta sẽ
+[00:17:52] phải convert token name, nếu token name đang là string thì
+[00:17:59] kiểm tra kiểu, nếu token name là string thì chuyển thành bytes
+[00:18:07] còn không thì giữ nguyên, sau đó thì chúng ta sẽ
+[00:18:16] thực hiện nối thêm prefix vào token name.
+[00:18:31] Tương tự với user token name cũng vậy.
+[00:18:36] User token đấy. Đấy và trả về hai giá trị đó. Rồi tiếp theo thì chúng
+[00:18:44] sẽ tạo một cái hàm để xử lý metadata. Đấy
+[00:18:52] để tạo metadata trong datum. Đấy mình sẽ vừa viết.
+[00:19:03] Đấy thì metadata khi chúng ta xây dựng thì nó sẽ có
+[00:19:11] hai loại ấy. Thứ nhất là nó chỉ có trường description thôi. Trong bài này thì mình chỉ xây dựng metadata là
+[00:19:20] chỉ có trường description, nó sẽ chuyển description thành bytes.
+[00:19:29] Đấy, nếu như metadata nó có nhiều hơn các trường này thì mình sẽ
+[00:19:37] xử lý. Đấy, đầu tiên là for key và value trong metadata.
+[00:19:46] Đấy, nếu value là string thì chúng ta sẽ phải chuyển nó sang
+[00:19:55] dạng bytes và nếu không thì giữ nguyên.
+[00:20:13] Rồi sau khi xử lý xong metadata thì tiếp theo chúng ta sẽ thực hiện tạo datum
+[00:20:22] cho chuẩn CIP-68. Đấy thì chúng ta sẽ dựng hàm này đây với các tham số là policy ID này,
+[00:20:34] name này,
+[00:20:37] public key hash này, metadata có thể là kiểu đơn dữ liệu hoặc kiểu dictionary,
+[00:20:45] và version, trả về kiểu CIP-68 chúng ta đã khai báo ở trên đấy.
+[00:20:54] Tiếp theo là rồi đầu tiên chúng ta sẽ xử lý metadata.
+[00:21:09] Đấy xử lý metadata vì là policy id, asset name đều là dạng bytes hết
+[00:21:15] đúng không? Còn cái metadata thì nó vẫn là kiểu string đấy nên chúng ta
+[00:21:25] xử lý nếu như metadata mà chỉ có một trường ấy,
+[00:21:32] một trường là string thì chúng ta tạo metadata dùng cái hàm convert metadata cái
+[00:21:39] đấy sang kiểu metadata phù hợp với dữ liệu on-chain đấy. Nếu metadata mà là dictionary
+[00:21:48] chúng ta cũng cần phải xử lý đấy.
+[00:21:53] Metadata mà là dictionary thì convert.
+[00:22:03] Đầu tiên chúng ta sẽ khởi tạo một cái mảng một cái đối tượng metadata dict rỗng này. Đấy.
+[00:22:13] Đấy. Tiếp theo là duyệt qua từng key và value trong dictionary của metadata này
+[00:22:19] for key, value in metadata items đấy.
+[00:22:42] Ừ.
+[00:22:46] nếu như gọi là key mà là string ấy UTF-8 ấy thì chúng ta phải
+[00:22:53] encode lại. Đấy tương tự như vậy bytes cũng thế, value của dictionary cũng
+[00:23:02] đấy. Và sau đó thì gán vào metadata
+[00:23:11] nếu không thì giữ nguyên
+[00:23:23] và cuối cùng là return.
+[00:23:35] Rồi ờ chúng ta sẽ viết thêm một vài hàm nữa
+[00:23:40] là hàm get policy ID từ cái thằng script ấ đấy.
+[00:23:52] Policy ID nó lấy vào là cái mint script và nó trả về kiểu dữ liệu script khác. Đấy.
+[00:24:12] Rồi ở đây nhập.
+[00:24:22] Ok. Tiếp theo thì chúng ta sẽ viết thêm một cái hàm này lấy public key hash trong một số trường hợp cần thiết từ
+[00:24:30] đấy. Định nghĩa hàm extract public key hash
+[00:24:37] datum này. Tham số nhận vào là datum đấy.
+[00:24:43] Datum kiểu CIP-68 đã được convert về đấy. return datum.
+[00:24:56] Rồi tiếp theo cần một hàm để lấy address từ script của Plutus V3. Đấy, get
+[00:25:05] address nà. Hàm này là một cái hàm lấy vào tham số là Plutus script và network trả về kiểu address. Đấy.
+[00:25:19] Rồi đầu tiên đó là script hash này. Đấy.
+[00:25:41] Nhầm.
+[00:25:55] Xong. return address. Đấy.
+[00:26:00] Ok. Ờ như vậy thì chúng ta đã có một số hàm cần thiết rồi. Đấy.
+[00:26:09] Tiếp theo thì chúng ta sẽ sang ờ phần quan trọng hơn đó là viết các cái
+[00:26:17] để thực hiện build giao dịch.
+[00:26:22] Đấy chúng ta sẽ tắt cái này đi.
+[00:26:29] Ok. Tiếp theo đó là tạo một cái file ừ là file
+[00:26:36] cip68_operations.py để thực hiện build giao dịch.
+[00:26:43] CIP-68 operation
+[00:26:55] trong thư mục offchain CIP-68 operation này. Đấy, file này
+[00:27:04] thực hiện cung cấp các hàm để mint, burn token.
+[00:27:12] Sử dụng PyCardano để xây dựng transaction. Đầu tiên vẫn là import thư viện
+[00:27:18] thiết. Đấy. Import các rồi.
+[00:27:31] Import các nào.
+[00:27:42] Đấy. Tiếp theo là import dotenv để load các biến môi trường. Đấy, tiếp
+[00:27:50] là import Blockfrost này, import PyCardano này. Đấy, tiếp theo là import một
+[00:27:57] cái hàm mà chúng ta đã xây dựng trước đó của cái file cip68_utils.py. Đấy.
+[00:28:05] Đấy. Ok. Bước đầu tiên thì chúng ta sẽ thực hiện load environment. Đấy,
+[00:28:12] tiếp theo thì chúng ta sẽ xây dựng một cái hàm hàm khởi tạo context trên.
+[00:28:19] Đấy,
+[00:28:21] nghĩa hàm này. Đấy, mình sẽ thêm một chú thích vào đây.
+[00:28:28] Rồi chúng ta sẽ lấy ra network từ cái biến môi trường. Đấy, thứ hai là lấy Blockfrost key.
+[00:28:39] Đấy. Ừ. Mình sẽ xem lại xem nào.
+[00:28:44] For project ID này đây mới đúng này. Đấy. Network. Network.
+[00:28:53] Ok. Rồi tiếp theo thì chúng ta sẽ map network tương ứng
+[00:29:03] và trả về cái context trên. Ok.
+[00:29:11] Như vậy chúng ta đã xong. Tiếp theo là hàm khôi phục các thông tin của ví.
+[00:29:19] Ừ trả về một double định nghĩa nó sẽ nhận vào cụm 24 ký tự và trả về top này. Đấy.
+[00:29:32] Rồi đầu tiên đó là khôi phục ví từ mnemonic.
+[00:29:42] Tiếp theo thì chúng ta sẽ lấy hai cái cặp key từ dẫn xuất. Đấy.
+[00:29:51] Tiếp theo thì chúng ta sẽ thực hiện gọi là tạo hai cái S key từ cái key trên.
+[00:30:02] Rồi tiếp theo thì chúng ta sẽ
+[00:30:11] thành public key public gọi là public key.
+[00:30:20] Ok.
+[00:30:23] Ừ. lấy cái network ra lấy lại cái network. Đấy.
+[00:30:36] Rồi tiếp theo thì chúng ta sẽ lấy địa chỉ chính
+[00:30:43] và trả về các cái giá trị cần thiết như là payment skey,
+[00:30:51] vkey này, stake skey. Đấy.
+[00:30:56] Ok. Chúng ta sẽ có một cái hàm get network đi cho tiện.
+[00:31:04] Đấy,
+[00:31:06] nó lấy từ biến môi trường rồi return. Đấy. Ok. Rồi tiếp theo thì chúng
+[00:31:13] sẽ lấy các script trong bài này.
+[00:31:22] Nói chung là lấy hết ấy.
+[00:31:25] Chúng ta sẽ khai báo chung trước.
+[00:31:33] Rồi ờ đầu tiên đấy là hàm này nó nhận vào một cái tham số.
+[00:31:42] Tham số này là có thể None nhé. Đấy, nếu tham số là None
+[00:31:49] chúng ta sẽ thiết lập tham số của nó là đường dẫn vào thư mục chứa
+[00:31:56] file plutus.json. Đấy, CIP-68 dynamic asset
+[00:32:05] đúng rồi. Nếu như có đường dẫn truyền vào thì
+[00:32:14] có đường dẫn truyền vào thì chúng ta sẽ khai báo cái đường dẫn chính là cái đường dẫn của cái thư mục plutus.json
+[00:32:22] được biên dịch thành file plutus.json trong phần code hợp đồng thông minh trước đó. Đây này. Đấy.
+[00:32:30] Ok.
+[00:32:32] Rồi tiếp theo thì chúng ta sẽ lấy ra minting script đấy.
+[00:32:40] gọi đến hàm load mint script mà chúng ta đã định nghĩa lúc nãy ấy.
+[00:32:48] tiếp theo thì chúng ta tương tự sẽ lấy store script bằng cách gọi hàm load store script.
+[00:32:57] tiếp theo tạo policy ID từ mint script, rồi lấy network.
+[00:33:06] tiếp theo là chúng ta sẽ lấy được địa chỉ từ store script và network đấy. Và cuối cùng là trả về các giá trị chúng ta vừa lấy ra.
+[00:33:19] Ok.
+[00:33:21] Như vậy là chúng ta đã lấy xong ừ gọi là khởi tạo xong các cái hàm cần thiết rồi. Bây giờ thì chúng ta sẽ đi
+[00:33:30] những cái hàm chính. Đấy. Đầu tiên chúng ta sẽ thực hiện viết hàm mint.
+[00:33:36] Đầu tiên chúng ta sẽ định nghĩa hàm mint này.
+[00:33:41] Đấy các tham số truyền vào bao gồm là
+[00:33:55] các tham số này đấy: payment skey, payment vkey.
+[00:34:01] owner address này, name và description này. Đấy, hàm này sẽ trả về
+[00:34:09] dictionary là kết quả giao dịch. Đấy,
+[00:34:18] sẽ vừa code vừa chú thích để sau này mọi người đọc lại tài liệu sẽ hiểu rõ hơn. Đấy, đầu tiên là khai báo
+[00:34:28] Lấy network ra. Tiếp theo là load script. Ừ.
+[00:34:35] Đấy. Tiếp theo là lấy script từ tất cả các script mà
+[00:34:44] ta đã lấy ra từ hàm get script lúc trước đó ấy. Đấy. Tiếp theo là lấy owner public key.
+[00:34:57] Bước tiếp theo là chúng ta bắt đầu.
+[00:35:01] vào xây dựng giao dịch rồi thì đầu tiên thì nó sẽ là tạo asset name theo
+[00:35:07] CIP-68. Đấy, chúng ta sẽ lấy token name ra
+[00:35:14] encode nó lại thành dạng bytes. Và tiếp theo là tạo
+[00:35:22] asset name và reference asset name. Đấy từ cái hàm gọi là create CIP-68 asset name ấy.
+[00:35:32] Đấy.
+[00:35:33] Ok. Tiếp theo là tạo policy ID kiểu bytes, phải ép kiểu bytes nhé. Tiếp theo là tạo datum.
+[00:35:46] Datum bằng mở ngoặc.
+[00:36:03] Trong đây có các tham số như là policy ID này, asset name này,
+[00:36:09] owner, public key, metadata. Metadata thì có trường description đấy.
+[00:36:19] Ok. Tiếp theo vẫn là quy trình quen thuộc giống như mint NFT bình thường thôi. Đầu tiên là tạo multi-asset cho minting.
+[00:36:31] Tạo multi-asset này. Đấy, trước khi tạo multi-asset thì vẫn là khởi tạo asset.
+[00:36:39] Đấy, sau khởi tạo thì chúng ta sẽ thiết lập số lượng ứ thiết lập số lượng này.
+[00:36:49] Đấy, đầu tiên là chúng ta sẽ thiết lập số lượng cho reference token. Đấy, thứ hai là cho user token.
+[00:36:58] Đấy, asset của chúng ta sẽ ờ tiếp theo thì mint asset khởi tạo multi asset này
+[00:37:07] mint asset vào đấy mọi người nhớ chứ? Trong multi-asset sẽ có nhiều asset đấy.
+[00:37:20] Ok. Tiếp theo thì chúng ta sẽ thực hiện tạo redeem để thực hiện hành động là
+[00:37:30] gọi là hành động mint đấy. Redeem thì redeem cho hành động mint thì có là
+[00:37:38] là add kiểu kiểu là mint token như chúng ta đã khai
+[00:37:46] đấy. Đấy, mint token thì có tham số truyền vào là token name. Đấy, thì chúng ta sẽ gắn cái token name vào.
+[00:37:56] Rồi gắn token name. Rồi tiếp theo nhá, chúng trong tức là chúng ta đã khởi tạo multi
+[00:38:05] xong đúng không? Đấy, chúng ta sẽ đính cái multi asset này vào giao dịch mint. Đấy, thì chưa đến bước đó.
+[00:38:21] Chưa đến mức đó, chúng ta sẽ xử lý đầu tiên tạo hai cái đối tượng gọi là đối tượng reference token.
+[00:38:30] Ờ đấy vẫn phải gọi là quy trình tạo token
+[00:38:38] phải tạo ra asset và set khối lượng. Đây reference multi-asset này.
+[00:38:48] Đấy asset value cho nó bình thường nhá mọi người. Mình gọi là
+[00:38:56] vẫn phải nhắc lại một chút trong UTxO nếu như mà khi mà giao dịch ấy thì mọi
+[00:39:04] phải setup cho nó một cái giá trị lượng ADA bằng một con số. tối thiểu đấy
+[00:39:13] bước này chính là bước xét cho cái UTxO chứa reference token một cái lượng
+[00:39:20] tối thiểu này để sau đấy thì chúng ta sẽ truyền vào truyền vào cái
+[00:39:28] hợp đồng store đấy. Đấy build transaction đấy.
+[00:39:38] Builder tạo builder đấy. Tiếp theo là add input address thì thực hiện lấy
+[00:39:46] UTxO trả phí này. Tiếp theo là mint asset. Đấy, trong bước này mới bắt đầu
+[00:39:52] này này. Đấy, đính cái thông tin của cái multi asset này vào cái giao dịch.
+[00:40:01] Đấy, là đính thêm minting script.
+[00:40:07] Rồi và thêm một cái output để chuyển cái token này về cái địa chỉ store.
+[00:40:18] Tức là bước này này. Thực ra nó là chuyển cái chứa reference token về địa
+[00:40:29] hợp đồng thông minh. Đấy. Đấy. Bước này chính là khởi tạo cái multi-asset.
+[00:40:42] tạo cái multi asset để gọi là đính nó vào cái UTxO và chuyển vào hợp đồng
+[00:40:48] minh. Đấy tương tự như vậy ừ vì là mint một cặp token, một cái là user token, một cái là reference token đúng
+[00:40:57] thì chúng ta cũng phải xử lý chuyển cái user token về thằng địa chỉ ví của thằng mint cũng tương tự như vậy.
+[00:41:08] Khởi tạo asset này, khởi tạo số lượng này đấy
+[00:41:14] tạo multi-asset này, đấy gọi là khởi tạo value.
+[00:41:22] Rồi add input.
+[00:41:26] Rồi add input chính là chuyển về địa chỉ ví của thằng ấy. Đấy. Tiếp theo là thêm một cái
+[00:41:35] sign và ký giao dịch.
+[00:41:41] Và tiếp theo là submit. A submit giao dịch.
+[00:41:50] Tiếp theo đấy là chúng ta sẽ thực hiện trả về thông tin giao dịch.
+[00:42:00] Rồi ừ mình sẽ tổng kết lại các bước chúng ta xây dựng giao dịch mint
+[00:42:09] nó cũng không khác gì ừ giao dịch mint token bình thường như những bài học trước mình đã hướng dẫn. Nhưng mà trong
+[00:42:17] học này nó có thêm cái tạo thêm cái datum cũng như là
+[00:42:25] sau khi mint xong thì chúng ta sẽ thực hiện ờ chuyển cái UTxO chứa reference
+[00:42:35] về địa chỉ hợp đồng thông minh và cái địa chỉ store đấy. Đấy, cái
+[00:42:42] token đấy nó sẽ đi theo cái UTxO và UTxO đó nó chứa cái datum để sau
+[00:42:50] chúng ta thực hiện chi tiêu cái datum đấy và cập nhật lại cái datum.
+[00:42:59] Ok, bước tiếp theo thì chúng ta sẽ thực hiện viết tiếp hàm update metadata.
+[00:43:06] Đấy, hàm này sẽ nhận vào các tham số đó là đầu tiên đó là context này,
+[00:43:15] hai là payment skey và payment vkey. Đấy,
+[00:43:21] theo là cái địa chỉ của người cập nhật ấy. Tiếp theo là token name.
+[00:43:35] Tiếp theo là trường thay đổi, metadata thay đổi thì chúng ta đã định description cho metadata nên chúng ta sẽ thay
+[00:43:43] cái description này. Và cuối cùng là cái đường dẫn đến file plutus.json
+[00:43:51] trả về dictionary là kết quả giao dịch.
+[00:43:59] Rồi thì mình sẽ thêm một chút chú thích trong đây.
+[00:44:10] Đầu tiên vẫn phải hình như là cái network này chúng ta không cần dùng đúng không?
+[00:44:17] Ok thôi.
+[00:44:20] Đầu tiên vẫn là load script giống các bước trước đó ấy. Đấy Lấy script này mục tiêu
+[00:44:26] lấy ra cái store address và policy ID store script.
+[00:44:32] Tiếp theo vẫn là get cái public key để sau này thực hiện gọi là
+[00:44:38] chiếu kiểm chứng chữ ký. Đấy tiếp theo là tạo policy ID.
+[00:44:46] Rồi bước tiếp theo vẫn là xây dựng token name
+[00:44:55] tạo reference asset name bằng cách nối thêm nối thêm cái prefix vào. Rồi sau khi đã
+[00:45:05] up xong là chúng ta sẽ bắt đầu tìm UTxO chứa reference token.
+[00:45:13] Đấy, vẫn dùng cái hàm gọi là context.
+[00:45:20] Đấy. Đấy, đầu tiên là khởi tạo reference UTxO bằng None. Đấy, duyệt tất cả các UTxO.
+[00:45:32] Nếu UTxO.output.amount có multi asset
+[00:45:41] Đấy, xong lại duyệt trong multi-asset các cái asset
+[00:45:51] các item của multi-asset đây này. Đấy, mọi người có thể hình dung là trong multi-asset nó gồm nhiều asset.
+[00:46:02] Đấy, chính vì thế mà từ thằng cha lại đến thằng con.
+[00:46:10] Rồi tiếp theo là kiểm tra.
+[00:46:16] Nếu cái policy ID mà bằng cái policy ID của cái thằng muốn update đấy cộng với cái ref
+[00:46:25] đấy thì chúng ta sẽ thực hiện gán cái reference UTxO bằng cái UTxO đó.
+[00:46:38] Đấy, nếu như không có thì trả lời là không tìm thấy.
+[00:46:44] Rồi, ok. Tiếp theo thì chúng ta sẽ phải xử lý datum này. Xử lý datum.
+[00:46:54] Xử lý datum để lấy ra public key hash.
+[00:47:07] Đấy, đầu tiên đó là từ cái reference UTxO đấy, chúng ta sẽ
+[00:47:14] ra cái datum. Đấy, nếu datum
+[00:47:21] thuộc kiểu thì chúng ta sẽ gán current
+[00:47:29] current owner đấy bằng cái
+[00:47:36] public key hash ừ chứa trong cái datum.
+[00:47:41] Còn nếu current khác public key hash thì nó không phải chủ sở hữu.
+[00:47:56] Và tiếp theo thì nếu như đúng thì
+[00:48:07] nếu đúng thì cho nó cập nhật. Và rồi
+[00:48:24] tiếp theo là chúng ta sẽ phải khởi tạo datum mới.
+[00:48:29] Khởi tạo datum mới. Đấy. New datum này sẽ bằng CIP-68 datum.
+[00:48:43] policy ID này đấy. asset name này
+[00:48:52] public key hash này.
+[00:48:58] Và metadata sẽ new description mới và version bằng new version.
+[00:49:06] Rồi ok.
+[00:49:10] Đấy, bước tiếp theo sau khi đã tạo datum xong chúng ta sẽ tạo redeem cho cái hành động này. Spending này. Thì hành động
+[00:49:19] chính là update metadata. Chúng ta sẽ tạo cái redeem dựa trên cái
+[00:49:27] định nghĩa variant của cái redeemer chúng ta đã khai báo trước đó là update metadata. Và tiếp theo là build transaction.
+[00:49:38] Đấy, view transaction khởi tạo transaction này. Đấy, tiếp theo là add input address.
+[00:49:47] Rồi tiếp theo là thực hiện gọi là add input script từ cái địa chỉ hiện tại.
+[00:49:59] Đấy. Tiếp theo đó là gửi lại cái UTxO chứa ref token trở lại
+[00:50:08] script ấy. Đấy, vẫn là khởi tạo asset đầu tiên này. Đấy, vẫn là
+[00:50:16] tạo số lượng và khởi tạo multi-asset này. Gắn asset vào multi-asset này. Đấy, đính kèm một lượng
+[00:50:25] ADA tối thiểu và gửi nó về
+[00:50:33] địa chỉ store. Đấy, cuối cùng là yêu cầu ký và thực hiện ký giao dịch.
+[00:50:44] Và cuối cùng là submit.
+[00:50:49] Ok. Và trả về thông tin kết quả giao dịch.
+[00:50:57] Ok. Mình sẽ nhắc lại một lần nữa nhé.
+[00:51:00] hợp đồng ờ thông minh phần điều kiện để spend ấy tức là spending cái UTxO
+[00:51:10] đang chứa cái reference token mà chúng ta đang muốn cập nhật cái metadata
+[00:51:19] chúng ta sẽ phải nhớ lại cái hợp đồng thông minh nó có ba điều kiện đầu tiên đó là phải được ký bởi cái thằng
+[00:51:27] có cái chữ ký tương ứng với cái public key hash được lưu trong datum của cái UTxO đó. Đấy thì đây chính là điều kiện
+[00:51:35] đầu tiên này. Đấy điều kiện thứ hai đó là input phải chứa
+[00:51:42] reference token. Đấy thì đây chính là cái xử lý điều kiện đấy nhá. Đấy.
+[00:51:50] Và điều kiện tiếp theo đó là cái output nó cũng phải chứa cái reference token.
+[00:52:00] Thì đây chính là điều kiện thứ ba này.
+[00:52:02] Đấy, mọi người có thể hình dung lại. Ok chưa?
+[00:52:07] Ok rồi. Đấy, mình gọi là cũng đã code xong cái phần update metadata. Tiếp theo
+[00:52:14] phần burn. Phần này thì cũng khá là đơn giản thôi. Định nghĩa hàm burn.
+[00:52:27] Tương tự như các hàm khác cũng nhận vào context, payment skey. Ừ.
+[00:52:35] Đấy, context này payment skey này. Đấy, trả về dict này.
+[00:52:46] Đấy,
+[00:52:48] về dict thì mình sẽ chú thích một chút cái này.
+[00:52:52] Rồi tiếp theo vẫn là lấy network. Cái này hơi thừa thôi cứ đi. Tiếp theo vẫn là load script.
+[00:53:01] Rồi tiếp theo vẫn là get owner public key hash để đối chiếu chữ ký này. Rồi tiếp
+[00:53:08] vẫn là tạo asset name đấy và tạo reference và user token name này từ cái
+[00:53:17] mình vừa tạo này. Đấy khá là quen thuộc.
+[00:53:24] Và tiếp theo vẫn là tìm UTxO chứa reference token trên store này. Đấy dùng
+[00:53:31] hàm context.utxos đấy tại store, vẫn là khởi tạo ref
+[00:53:40] None đấy. Đấy tiếp theo là duyệt.
+[00:53:46] Duyệt tất cả các UTxO đấy xong lại duyệt tiếp trong multi-asset này. Đấy,
+[00:53:56] trong multi-asset là nếu như có tồn tại cái id
+[00:54:02] cái reference asset name đấy. Đấy thì chúng
+[00:54:09] sẽ gán cái reference asset bằng cái UTxO đó và break. Nếu không thì chúng ta
+[00:54:17] trả về là không tìm thấy. Đấy. Tiếp theo
+[00:54:24] vẫn là lấy thông tin public key hash.
+[00:54:30] Đấy, xử lý datum này.
+[00:54:35] Đấy, nếu như Datum đã là kiểu CIP-68 chúng ta đã xây dựng thì
+[00:54:42] ta lấy ra public key hash. Đấy, nếu như
+[00:54:51] public key hash mà không trùng với thằng truyền vào thì thông báo là nó không
+[00:55:00] chủ. Đấy. Và tiếp theo là tìm
+[00:55:07] ví của user, lấy trong ví của này. Đấy cũng khởi tạo rồi. Khởi tạo xong rồi cũng duyệt qua.
+[00:55:20] Nói chung cũng tương tự như trên rồi. Nếu như không có thì thông báo
+[00:55:32] để giao dịch tạo giao dịch thì vẫn là những bước quen
+[00:55:40] chỉ khác là nó sẽ khởi tạo số lượng là âm thôi.
+[00:55:48] Đấy vẫn là tạo asset, vẫn là khởi tạo số lượng.
+[00:55:54] để rồi
+[00:56:06] gắn vào khởi tạo multi-asset này, sau đó gắn thông tin asset này.
+[00:56:14] đó tạo redeem tạo redeem thì có hai cái chúng ta cần chú ý nhé
+[00:56:23] Như mình đã chia sẻ trong bài thực hành phần code hợp đồng thông minh hôm trước
+[00:56:30] đã nhấn mạnh là để burn một cái token theo CIP-68 thì nó có hai cái công
+[00:56:37] Công đoạn đầu tiên đó là phải chi tiêu bỏ cái UTxO trong hợp đồng store đi. Đấy, sau khi chi tiêu xong rồi thì
+[00:56:47] reference token đấy nó vẫn tồn tại trên chuỗi. Chính vì thế mà chúng ta phải thêm một hành động là hành động hủy.
+[00:56:57] Hủy nó tức là hủy nó đi, thực hiện giao dịch, burn nó. Đấy, gồm hai công đoạn.
+[00:57:03] Công đoạn đầu tiên là chi tiêu. Công đoạn thứ hai là công đoạn hủy. Đấy.
+[00:57:10] Vào bước build transaction này. Rồi tạo builder. Ứ.
+[00:57:16] Tiếp theo là ừ add input address để thực hiện có UTxO
+[00:57:24] phí này. Tiếp theo là add script input. Tức là lấy UTxO từ địa chỉ hợp
+[00:57:32] ra để chi tiêu này. Đấy. Tiếp theo đấy là add input
+[00:57:41] UTxO chứa user token để thực hiện lấy ra cái token để thực hiện hủy và tiếp
+[00:57:49] đấy là thực hiện gọi là đính kèm cái thông tin của cái tài sản multi-asset
+[00:57:57] vào cái giao dịch. mint đấy các mỗi giao dịch mint là số lượng ở đây là
+[00:58:03] thôi. Và cuối cùng là đính thêm cái mining script giống như lúc chúng ta mint
+[00:58:10] Đấy thêm cái redeem.
+[00:58:17] Ok. Tiếp theo đấy là khớp chữ ký và ký giao dịch.
+[00:58:25] Và cuối cùng là submit giao dịch.
+[00:58:33] Đấy, submit xong thì trả về thông tin.
+[00:58:42] Rồi bây giờ mình sẽ nhắc lại một số những điểm cốt lõi trong cái hàm burn CIP-68
+[00:58:52] này. Thì về cái khởi tạo giao dịch khởi tạo token name, asset name ấy nó
+[00:58:59] như các cái quy trình khởi tạo trong những hàm mint token trước đó ấy. Đấy nó chỉ khác đó là
+[00:59:08] chúng ta burn một cái token theo chuẩn CIP-68
+[00:59:15] sẽ có hai hành động. Hành động thứ nhất là hành động chúng ta phải spend
+[00:59:22] là chi tiêu bỏ cái UTxO đang được chứa trong cái hợp đồng store này đi.
+[00:59:29] Cái hành động thứ hai đó là phải hủy bỏ cái reference token và cái
+[00:59:38] token này đi. Đấy. Ok.
+[00:59:44] Rồi bước tiếp theo thì chúng ta cũng có thêm một cái hàm bổ sung để list token
+[00:59:52] khi cần thiết nhé.
+[00:59:58] Ta sẽ định nghĩa hàm list token này, nó sẽ nhận vào
+[01:00:06] vài thông tin như context, store_address,
+[01:00:13] user_address để thực hiện list các token theo chuẩn CIP-68 tương ứng giữa địa chỉ
+[01:00:24] của người dùng và địa chỉ hợp đồng đã triển khai. Đầu tiên thì chúng ta sẽ định nghĩa
+[01:00:31] các prefix cho reference token và user token.
+[01:00:38] Đấy, tiếp theo chúng ta sẽ khai báo một biến user_token_list và holding_token_names.
+[01:00:49] Đấy, bước một chúng ta sẽ lấy danh sách token trong ví của user.
+[01:01:05] Rồi vòng for này vẫn là các bước khá quen thuộc.
+[01:01:13] Duyệt multi-asset, duyệt từng item một.
+[01:01:28] Duyệt từng item, nếu số lượng lớn hơn 0
+[01:01:35] và asset name bắt đầu bằng user prefix thì chúng ta sẽ lấy phần tên phía sau.
+[01:01:47] Nếu số lượng của asset đó lớn hơn 0 và tên bắt đầu bằng user prefix
+[01:01:56] thì chúng ta sẽ lấy phần tên sau prefix.
+[01:02:02] Đấy, đó là base_name.
+[01:02:11] Rồi thực hiện thêm base_name này vào danh sách.
+[01:02:23] Và in ra để kiểm tra.
+[01:02:33] Đoạn này chỉ để debug thôi, cứ hiển thị ra trước. Tiếp theo là tìm reference token
+[01:02:43] tương ứng trong store, cũng duyệt các UTxO của store bằng vòng for.
+[01:02:51] Rồi duyệt policy_id, sau đó duyệt các multi-asset bên trong
+[01:02:59] và tiếp tục duyệt từng asset trong multi-asset.
+[01:03:05] Nếu asset name bắt đầu bằng ref prefix
+[01:03:13] thì lấy phần tên phía sau.
+[01:03:20] Nếu base_name này có trong danh sách token đang giữ
+[01:03:29] thì chúng ta sẽ lấy thêm thông tin và giải mã datum.
+[01:03:38] Lấy raw datum
+[01:03:47] từ UTxO.output.datum, rồi if
+[01:04:02] nếu datum đúng kiểu thì chuyển về dạng CIP-68 datum,
+[01:04:09] không thì giữ nguyên.
+[01:04:21] Và cuối cùng là lấy ra thông tin metadata dạng dict.
+[01:04:36] Đấy, duyệt tất cả các trường trong metadata. Nếu metadata là dict
+[01:04:47] thì xử lý key trước.
+[01:04:57] Value cũng xử lý tương tự.
+[01:05:04] Sau đó gán lại metadata đã convert
+[01:05:12] vào dictionary kết quả và thêm vào user_token_list.
+[01:05:29] append token_name.
+[01:05:43] Rồi thêm policy_id,
+[01:05:55] decode UTF-8, tiếp theo là metadata.
+[01:06:08] Tiếp theo là version, lấy từ datum.version.
+[01:06:13] Đấy, vậy là xong.
+[01:06:20] Ok, có xử lý try/except ở đây.
+[01:06:34] Và cuối cùng là return user_token_list.
+[01:06:45] Ok,
+[01:06:49] Cuối cùng thì viết thêm một số hàm test trong đây.
+[01:06:57] Rồi ok. Như vậy là chúng ta đã xong một số hàm khá quan trọng trong
+[01:07:07] quá trình thực hiện code off-chain.
+[01:07:16] Bước tiếp theo thì chúng ta sẽ viết các script để gọi đến các hàm này.
+[01:07:26] Nhưng mà đầu tiên thì chúng ta phải init trước, tức là khởi tạo trước.
+[01:07:32] Ừ, viết một hàm tổng hợp lại
+[01:07:40] để lấy ra từ các hàm trong
+[01:07:49] hai file chúng ta vừa code ấy. Đấy, import vào.
+[01:07:57] From script đây. Rồi. Ồ,
+[01:08:06] đoạn khai báo này cũng khá quan trọng. Rồi ok.
+[01:08:14] Tiếp theo thì chúng ta sẽ tạo một vài file
+[01:08:21] để chạy thử. Đấy, file đầu tiên là file mint.
+[01:08:29] Demo mint.
+[01:08:32] Demo mint file.
+[01:08:49] Trong file này chúng ta sẽ thực hiện gọi hàm mint.
+[01:08:59] Đầu tiên vẫn là import thư viện. Rồi tiếp theo là import dotenv.
+[01:09:09] Tiếp theo là import một số hàm dùng cho mint.
+[01:09:16] Đấy. Đầu tiên vẫn là load ENV, tiếp theo là khai báo hàm main.
+[01:09:26] Hàm main này in một số văn bản trình bày.
+[01:09:33] Đấy, tiếp theo là load wallet.
+[01:09:40] Đầu tiên là load biến seed phrase này. Đấy, nếu không có thì in thông tin ra.
+[01:09:50] Đấy. Tiếp theo thì chúng ta sẽ lấy thông tin wallet bằng hàm get
+[01:09:57] từ seed phrase ấy. Đấy, lấy được thì print ra. Ok.
+[01:10:04] Tiếp theo thì chúng ta sẽ tạo context.
+[01:10:11] Rồi tiếp theo thì chúng ta sẽ query một số thông tin của ví, ví dụ
+[01:10:20] số dư chẳng hạn.
+[01:10:27] Đấy. Nếu tiền nhỏ hơn 10 thì print là không đủ.
+[01:10:38] Rồi tiếp theo thì chúng ta sẽ có một biến timestamp,
+[01:10:47] mỗi lần mint thì chúng ta sẽ đính kèm timestamp đó vào.
+[01:10:56] Tên token đính kèm timestamp này để mô tả rõ hơn trong trường description.
+[01:11:04] Đấy,
+[01:11:08] sau đó thì chúng ta sẽ in thông tin ra.
+[01:11:14] Đấy, rồi đây bắt đầu vào bước gọi hàm mint, tức là setup
+[01:11:21] thông tin để mint thôi. Đấy, gọi hàm run mint CIP-68 token này.
+[01:11:35] Gồm các tham số như context, payment skey,
+[01:11:42] payment vkey, address,
+[01:11:48] name và description. Đấy, tiếp theo là in
+[01:11:54] thông tin giao dịch thành công hay không.
+[01:12:01] Rồi thêm một công đoạn là lưu
+[01:12:09] thông tin token vào file.
+[01:12:14] Mở để lưu vào file JSON. Đấy, mở file json ra.
+[01:12:23] json.
+[01:12:32] Đấy, trước khi đi vào bước tiếp theo, mình muốn bổ sung
+[01:12:38] một câu lệnh để thêm đường dẫn dự án.
+[01:12:48] Đây tức là thiết lập project root của dự án là thư mục hiện tại.
+[01:13:03] Rồi tiếp theo chúng ta sẽ xử lý exception.
+[01:13:15] Tab lại nào. Ok, và tiếp theo là kết thúc hàm.
+[01:13:25] Rồi chúng ta đã viết xong script demo, tí nữa sẽ chạy một thể.
+[01:13:35] Tiếp theo thì viết thêm script khác là demo update.
+[01:13:44] Đấy.
+[01:13:55] Trong file này mục đích của nó là
+[01:14:04] update trường metadata. Cũng import thư viện và add project root.
+[01:14:14] Cũng import các hàm phục vụ cho update, rồi load env.
+[01:14:23] Khai báo hàm main và in ra.
+[01:14:33] Tiếp theo là load wallet, tương tự như mint thôi.
+[01:14:45] Rồi tiếp theo cũng lấy script và các thông tin liên quan đến ví.
+[01:15:03] Rồi tiếp theo lấy một số script cần thiết bằng hàm get script, không có tham số cũng được.
+[01:15:14] Đấy,
+[01:15:16] lấy ra địa chỉ ví và địa chỉ store.
+[01:15:25] Ở đây chúng ta cần một policy id,
+[01:15:34] cái này thì chúng ta sẽ thay sau,
+[01:15:38] sau khi đã mint token NFT.
+[01:15:56] Rồi đấy, print cái position này ra. Đấy cũng phải khởi tạo context.
+[01:16:06] Trong update này sẽ có thêm một công đoạn là
+[01:16:14] list các token mà chúng ta đang sở hữu theo chuẩn CIP-68.
+[01:16:28] Nếu không tìm thấy token mang policy đó thì thông báo,
+[01:16:38] nếu tìm thấy thì tiếp theo duyệt danh sách token.
+[01:16:52] In ra thông tin như token name, version,
+[01:17:00] đấy,
+[01:17:04] tiếp theo khi thực hiện update thì chúng ta sẽ tạo một bước select.
+[01:17:16] Xin nhắc lại một lần nữa nhé, vì ví dụ này hợp đồng thông minh không có parameter nên
+[01:17:25] policy ID tạo ra từ minting script sẽ là cố định. Đấy nên khi
+[01:17:34] ta mint thì sẽ có nhiều token cùng policy ID nhưng
+[01:17:43] name khác nhau. Vì vậy khi quét
+[01:17:51] token trong ví thì chúng ta sẽ có nhiều token theo chuẩn CIP-68.
+[01:17:57] Đấy, khi quét ra thì chúng ta sẽ lựa chọn một token
+[01:18:04] để update. Nếu số lượng token bằng 1 thì tự chọn luôn.
+[01:18:16] Còn nếu số lượng token lớn hơn 1 thì chúng ta sẽ dùng hàm nhập
+[01:18:27] input để chọn token. Đấy, xử lý choice
+[01:18:37] và except ở đây. Chúng ta đã chọn xong token rồi.
+[01:18:46] Đấy, đây là token name.
+[01:18:51] Lấy token name ra và thêm trường metadata muốn cập nhật, cụ thể là
+[01:19:01] new description. Đấy thì chúng ta sẽ đính cho nó một timestamp.
+[01:19:09] thành update metadata. Cái cũ là
+[01:19:17] Demo CIP-68, cái mới là update.
+[01:19:25] Rồi tiếp theo là in thông tin ra.
+[01:19:33] Rồi tiếp theo là bước gọi hàm update metadata, truyền các thông tin
+[01:19:40] vào đấy,
+[01:19:48] truyền tham số vào nhé: context, key, vkey, owner address.
+[01:20:03] Rồi tiếp theo là in thông tin ra và except.
+[01:20:15] Rồi cuối cùng là ok.
+[01:20:22] Như vậy thì trong script này có một điểm lưu ý là chúng ta sẽ query trong ví user xem user
+[01:20:31] muốn thay đổi metadata của token nào.
+[01:20:39] Sau khi lựa chọn xong token muốn thay đổi thì truyền new description vào hàm update metadata.
+[01:20:52] Rồi tiếp theo thì chúng ta sẽ viết hàm demo_burn.
+[01:21:04] Đấy.
+[01:21:19] Đầu tiên vẫn phải import thư viện,
+[01:21:23] định nghĩa root của project, import các hàm để burn, rồi load dotenv.
+[01:21:33] Khá giống các bước cũ nên mình sẽ làm nhanh.
+[01:21:38] Định nghĩa main cũng in ra, không khác gì mint với update.
+[01:21:46] Tiếp theo là load seed phrase, lấy các trường liên quan đến ví.
+[01:21:54] Rồi tiếp theo lấy script để có địa chỉ và list token, tiếp theo là in ra.
+[01:22:06] Bước này cũng phải chuẩn bị policy ID của token cần burn,
+[01:22:15] sau khi mint xong thì chúng ta sẽ thao tác với policy ID hoặc token đó. Rồi khởi tạo
+[01:22:24] context. Đấy, vẫn là list token này.
+[01:22:31] Rồi, nếu không tồn tại token thì thông báo ra.
+[01:22:40] Và nếu tìm thấy thì hiển thị.
+[01:22:50] Rồi tiếp theo là chọn token burn, giống hệt update thôi. Nếu
+[01:22:59] len token bằng 1 thì select luôn token ở vị trí 0.
+[01:23:08] Rồi thêm một bước nhập confirm
+[01:23:15] có muốn burn không.
+[01:23:21] xử lý thêm bước xác nhận.
+[01:23:32] Nếu có nhiều token thì tiếp tục gán select và tìm input để lựa chọn.
+[01:23:41] Đấy, xong lại tiếp tục xử lý try/except.
+[01:23:51] Rồi gán token_name.
+[01:23:57] Tiếp theo là in ra và cuối cùng là thực thi burn, gọi đến hàm burn.
+[01:24:09] Thế là xong.
+[01:24:21] Và cuối cùng là in ra thông tin giao dịch. Đấy, except.
+[01:24:34] Rồi như vậy là chúng ta đã viết xong
+[01:24:42] ba cái script.
+
+## Part 2 - Demo run
+- Video link: https://www.youtube.com/watch?v=wFkFvBGOCH4
+
+[00:00:03] Ok,
+[00:00:04] tiếp theo thì chúng ta sẽ thực hiện nhảy vào chạy thử các cái script này xem chúng ta đã thực hiện
+[00:00:13] thành công các tính năng như mint update burn hay chưa. thì chúng ta sẽ thực hiện
+[00:00:19] mint trước thì chúng ta sẽ gõ lệnh python
+[00:00:28] demo_mint.py đấy.
+[00:00:46] Ok.
+[00:00:48] transaction đã thực hiện thành công rồi nhá. Đây chính là policy ID này.
+[00:00:59] Đấy,
+[00:01:01] đây thì chúng ta đã lưu thông tin token sau khi mint vào một file json để sau này sử dụng lại.
+[00:01:11] Mọi người có thể thấy này, policy ID này.
+[00:01:14] Đấy, tiếp theo thì chúng ta sẽ thực hiện tra cứu trên Cardanoscan xem
+[00:01:23] đã submit, verify lên trên hay chưa. Vẫn chưa, mọi người sẽ đợi một lúc. Đấy,
+[00:01:30] trong quá trình đó thì chúng ta sẽ tạm thời quay lại file update để điền lại thông tin policy ID.
+[00:01:40] Đấy.
+[00:01:43] Rồi quay lại file burn để điền lại thông tin của policy ID.
+[00:01:52] Đây Ctrl Save nào. Đấy description nhá.
+[00:02:03] Quá trình này có thể mất một khoảng thời gian đấy. Ok, đã xong này.
+[00:02:11] Đấy, giao dịch mint này. Ừ,
+[00:02:17] thông tin transaction này
+[00:02:25] nhở? Đây, token mint tạo ra hai token này, cùng policy ID này.
+[00:02:33] Contract đây, chúng ta sẽ xem
+[00:02:42] nó có datum như thế nào.
+[00:02:51] Đấy mọi người có thấy không?
+[00:02:55] Key là description còn value là
+[00:03:01] CIP-68 này. Thời gian của nó là đuôi là 5185. Chúng ta thử quay lại xem nào.
+[00:03:10] Thời gian của nó là 5185.
+[00:03:14] Ok. Như vậy đã đúng rồi. Tiếp theo thì chúng ta sẽ kiểm tra trên hợp đồng thông minh xem nào.
+[00:03:22] Contract này. Đấy.
+[00:03:31] Đây 5185 này được tạo 3 phút trước này. Ok chưa?
+[00:03:39] Đấy.
+[00:03:47] Đấy. Đây chính là cái hợp đồng thông minh store lưu cái ref token đấy. Đấy.
+[00:03:54] Còn cái địa chỉ của chúng ta, chúng ta cũng cần phải xem địa chỉ của chúng ta có gì.
+[00:04:01] Wallet address này khá là nhiều đấy.
+[00:04:11] Đuôi là 85 rồi chính là cái này đấy.
+[00:04:19] mint transaction này 3 phút trước đấy. Ok chưa?
+[00:04:31] Ừ như vậy thì chúng ta đã thực hiện mint thành công một cái chuẩn một cái cặp
+[00:04:40] token CIP-68 gồm hai cái token đó là một cái token là user
+[00:04:48] trên ví của chúng ta, một cái token là reference token nằm trên hợp đồng thông minh mà metadata của nó là cái trường
+[00:04:57] Đấy, sau đây thì chúng ta sẽ thực hiện demo cái tính năng update bằng cách chạy cái script của cái file
+[00:05:07] update.
+[00:05:17] Chúng ta sở hữu khá nhiều token đấy.
+[00:05:23] Nhưng mà cái token mà chúng ta sở hữu với cái
+[00:05:28] này thì chỉ có cái demo cái này thôi. Đấy nên nó sẽ tự động cập
+[00:05:37] thành cái trường là update metadata
+[00:05:42] thời gian là 5464. Đấy, chúng ta sẽ đợi một lúc và tra cứu trên cái
+[00:05:52] thông tin của transaction của Cardanoscan xem có được hay chưa. Đấy,
+[00:06:01] cũ là 5185 này. Đấy, new description mới là một cái trường là update metadata.
+[00:06:11] Đấy, trong đây mình cũng sở hữu khá nhiều cái token nhưng mà chỉ có một cái token là có policy
+[00:06:20] ID ấy thôi. policy ID là 1 9127. Đấy, chúng
+[00:06:26] sẽ đợi một chút để kiểm tra on-chain xem nào.
+[00:06:34] Ok,
+[00:06:36] nó tự chi tiêu này và lại gửi lại hợp đồng.
+[00:06:41] Đấy, tiếp tục xem cái UTxO nguồn này này.
+[00:06:53] Input output là cái này đây. Update metadata
+[00:07:02] Đã thay đổi rồi nhá. Lúc nãy là ờ demo CIP-68 thời gian là có đuôi là 5185. Bây giờ là 5464.
+[00:07:11] Ok, như vậy thì chúng ta đã demo update rồi. Tiếp theo chúng ta sẽ thực hiện demo tính năng burn.
+[00:07:31] Chắc là nó cũng sẽ đấy. Nó cũng chọn luôn cái NFT vừa rồi này.
+[00:07:41] Đấy. Xác nhận.
+[00:07:52] Thành công. Đợi một chút nhé. Đợi một chút.
+[00:08:53] Cái này nó sẽ mất khá là lâu đấy. tầm 20 đến 30 giây
+[00:09:02] cái on-chain nó ờ submit và verify thành công.
+[00:09:12] Ok, đã xong rồi. Đây thông tin giao dịch nó đã biến thành -1 rồi này.
+[00:09:19] Đấy, token mint đã biến thành -1 này. Đấy,
+[00:09:28] chúng ta sẽ kiểm tra lại cái địa chỉ xem nào. Xem có còn cái token nữa không.
+[00:09:37] Lúc nãy là 12 token đúng không? đuôi là 85 giờ lại không còn nữa rồi đấy. Kiểm tra lại cái địa chỉ store xem nào.
+[00:09:50] Cái này thì lại không có cái địa chỉ store rồi. Không thì lấy lại cái địa chỉ này cũng được.
+[00:09:58] Đấy, đây chính là địa chỉ store này. Đấy. Đấy, 5185 cũng đã trừ đi rồi.
+[00:10:08] Đây, không còn cái 5185 nữa.
+[00:10:11] Ok, như vậy là trong phần demo phần code off-chain này mình cũng đã hướng dẫn các
+[00:10:20] nó khá là chi tiết về cái quá trình mình thực hiện sử dụng thư viện Py
+[00:10:28] Cardano để xây dựng code off-chain tương tác với hợp đồng thông minh cho các tính
+[00:10:35] như là mint này, update này, burn này với chuẩn CIP-68. bài học mà chúng ta
+[00:10:42] mình đang giảng dạy cho các bạn thì mình mong rằng những hướng dẫn chi tiết ừ của mình sẽ giúp cho các bạn có
+[00:10:53] dễ dàng hiểu được cái ví dụ thực tế trong việc triển khai hợp đồng thông minh CIP-68 và ứng dụng thư viện Py
+[00:11:02] Cardano để thực hiện tương tác với hợp đồng thông minh. Thì
+[00:11:11] bài học tiếp theo mình sẽ thực hiện ờ một cái video cuối đó là xây dựng một
+[00:11:19] full app hoàn chỉnh bao gồm cả frontend và backend để minh họa quy trình ờ
+[00:11:30] triển khai các tính năng như là mint, update và burn.
+[00:11:38] trên giao diện mọi người có thể thực hiện trực tiếp trên giao diện luôn mà không phải môi trường dòng lệnh
+[00:11:46] bài học ngày hôm nay thì tất cả các tài liệu liên quan đến code hoặc là
+[00:11:53] hướng dẫn mình sẽ thực hiện tổng kết lại và tổng hợp lại tại GitHub của team.
+[00:12:01] và mình sẽ public cho mọi người sau khóa học. Mình mong rằng những cái video hướng dẫn, những cái chia sẻ của nhóm
+[00:12:11] sẽ giúp cho mọi người có thêm kiến thức cũng như là hiểu biết để mọi người
+[00:12:18] chuẩn bị hành trang vào các dự án thực tế. Mình xin phép kết thúc video tại đây và mình xin cảm ơn mọi người.
+
+
+
+
+
+
+
+
+
