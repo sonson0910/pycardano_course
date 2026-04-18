@@ -850,9 +850,10 @@ if __name__ == "__main__":
 **Nội dung giảng:**
 > "Chạy `python run_backend.py` sẽ start FastAPI trên port 8000 với hot-reload. Truy cập `http://localhost:8000/docs` để xem Swagger UI — test API trực tiếp."
 
+================================= Hết phần backend =========================
 ---
 
-# 🎥 VIDEO 3 (MỚI) — Frontend & Backend Integration (Template-based)
+# 🎥 VIDEO 3 (Tiếp) — Frontend & Backend Integration (Code frontend Template-based)
 
 ## Tổng quan Video
 - **Thời lượng ước tính:** 60–90 phút  
@@ -864,8 +865,6 @@ if __name__ == "__main__":
   - Node.js 18+ đã cài
 
 ---
-
-================================= Hết phần backend=========================
 ================================= Bắt đầu phần frontend============================
 ## PHẦN 1: SETUP TEMPLATE
 
