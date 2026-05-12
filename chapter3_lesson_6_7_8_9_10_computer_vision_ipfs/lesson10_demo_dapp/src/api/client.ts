@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import axios from 'axios';
 
 // Khi deploy: VITE_API_URL = "https://did-face-dapp-api.onrender.com"
