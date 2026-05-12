@@ -40,9 +40,22 @@ app = FastAPI(
 )
 
 # CORS — cho phép frontend kết nối
+allowed_origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+
+# Thêm Vercel domain từ env (set khi deploy)
+import os
+vercel_url = os.getenv("FRONTEND_URL", "")
+if vercel_url:
+    allowed_origins.append(vercel_url)
+
+# Cho phép tất cả *.vercel.app domains
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

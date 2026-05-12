@@ -1,0 +1,5 @@
+# ⚠️ FILE NÀY CHỈ ĐỂ THAM KHẢO!
+# render.yaml chính nằm ở THƯ MỤC GỐC (../render.yaml)
+# vì Render cần Dockerfile context ở root để COPY từ nhiều thư mục.
+#
+# Xem ../render.yaml để biết cấu hình đầy đủ.

@@ -30,8 +30,12 @@ from pycardano import (
 )
 
 logger = logging.getLogger(__name__)
+# Load .env — hỗ trợ cả local và Docker
 env_path = Path(__file__).parent.parent.parent.parent / ".env"
-load_dotenv(dotenv_path=env_path)
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+else:
+    load_dotenv()  # Fallback: Docker env vars
 
 
 # ═══════════════════════════════════════════════
@@ -119,7 +123,12 @@ class CardanoService:
         )
 
         # Contract
-        plutus_path = Path(__file__).parent.parent.parent.parent / "lesson6_cv_did_integration" / "did_contract" / "plutus.json"
+        # Hỗ trợ cả local path và Docker/Render path
+        plutus_env = os.getenv("PLUTUS_JSON_PATH")
+        if plutus_env:
+            plutus_path = Path(plutus_env)
+        else:
+            plutus_path = Path(__file__).parent.parent.parent.parent / "lesson6_cv_did_integration" / "did_contract" / "plutus.json"
         if plutus_path.exists():
             with open(plutus_path) as f:
                 blueprint = json.load(f)

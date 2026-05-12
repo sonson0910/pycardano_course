@@ -1,0 +1,20 @@
+# Render Blueprint — IaC cho auto deploy
+# Docs: https://render.com/docs/blueprint-spec
+# Dockerfile ở root: chapter3_lesson_6_7_8_9_10_computer_vision_ipfs/Dockerfile
+
+services:
+  - type: web
+    name: did-face-dapp-api
+    runtime: docker
+    region: singapore
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: BLOCKFROST_PROJECT_ID
+        sync: false
+      - key: PINATA_JWT
+        sync: false
+      - key: MNEMONIC
+        sync: false
+      - key: FRONTEND_URL
+        sync: false

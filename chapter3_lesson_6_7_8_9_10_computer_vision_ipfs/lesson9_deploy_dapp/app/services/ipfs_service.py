@@ -15,7 +15,10 @@ from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 env_path = Path(__file__).parent.parent.parent.parent / ".env"
-load_dotenv(dotenv_path=env_path)
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+else:
+    load_dotenv()  # Fallback: Docker env vars
 
 PINATA_API = "https://api.pinata.cloud"
 

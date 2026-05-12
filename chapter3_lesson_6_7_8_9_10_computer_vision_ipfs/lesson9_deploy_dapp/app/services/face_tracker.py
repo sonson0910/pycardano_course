@@ -17,9 +17,15 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+import os
+
 # Model URL & path
 MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite"
-MODELS_DIR = Path(__file__).parent.parent.parent / "models"
+_model_dir_env = os.getenv("MODEL_DIR")
+if _model_dir_env:
+    MODELS_DIR = Path(_model_dir_env)
+else:
+    MODELS_DIR = Path(__file__).parent.parent.parent / "models"
 MODEL_PATH = MODELS_DIR / "blaze_face_short_range.tflite"
 
 # Singleton
