@@ -67,5 +67,7 @@ async def detect_faces(file: UploadFile = File(...)):
         )
 
     except Exception as e:
-        logger.error(f"❌ Face detection failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        error_details = traceback.format_exc()
+        logger.error(f"❌ Face detection failed: {e}\n{error_details}")
+        raise HTTPException(status_code=500, detail=f"Detection failed: {str(e)}")
